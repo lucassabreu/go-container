@@ -84,8 +84,7 @@ type staticValue struct {
 
 func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
 	switch castTo {
-	case INT:
-	case INT64:
+	case INT, INT64:
 		_, err := w.Write([]byte(fmt.Sprintf("%d", s.value)))
 		return err
 	case FLOAT64:
@@ -118,6 +117,32 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 		strings := s.value.(map[string]string)
 		for key, value := range strings {
 			if _, err := w.Write([]byte(fmt.Sprintf("\"%s\":\"%s\",\n", key, value))); err != nil {
+				return err
+			}
+		}
+
+		if _, err := w.Write([]byte("}")); err != nil {
+			return err
+		}
+		return nil
+	case STRINGMAPSTRINGSLICE:
+		if _, err := w.Write([]byte("map[string][]string{\n")); err != nil {
+			return err
+		}
+
+		strings := s.value.(map[string][]string)
+		for key, value := range strings {
+			if _, err := w.Write([]byte(fmt.Sprintf("\"%s\": []string {", key))); err != nil {
+				return err
+			}
+
+			for _, str := range value {
+				if _, err := w.Write([]byte(fmt.Sprintf("\"%s\",\n", str))); err != nil {
+					return err
+				}
+			}
+
+			if _, err := w.Write([]byte("},\n")); err != nil {
 				return err
 			}
 		}
@@ -159,7 +184,6 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 			return err
 		}
 		return nil
-	case STRINGMAPSTRINGSLICE:
 	case TIME:
 		_, err := w.Write([]byte(fmt.Sprintf("c.GetParametersBag().Get%s(\"%s\"))", castTo, s.value)))
 		return err
