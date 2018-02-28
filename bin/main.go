@@ -1,13 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/build"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"os"
 	"path/filepath"
 )
+
+// Package represents a Go package definition
+type Package struct {
+	Name       string
+	ImportPath string
+	Funcs      map[string]interface{}
+	Structs    map[string]interface{}
+}
+
+// Func represents a Go func definition
+type Func struct {
+	Name    string
+	Params  []types.Type
+	Results []types.Type
+}
 
 func main() {
 	wd, err := os.Getwd()
@@ -15,8 +33,11 @@ func main() {
 		panic(err)
 	}
 
-	pkgName := "github.com/Coderockr/vitrine-social/server/handlers"
-	// typeName = "NewOrganizationHandler"
+	testImport("github.com/Coderockr/vitrine-social/server/handlers", wd)
+	testImport("gopkg.in/yaml.v2", wd)
+}
+
+func testImport(pkgName, wd string) {
 
 	pkg, err := build.Import(pkgName, wd, 0)
 	if err != nil {
@@ -24,50 +45,48 @@ func main() {
 	}
 
 	fset := token.NewFileSet()
+	astFiles := []*ast.File{}
 	for _, file := range pkg.GoFiles {
 		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, file), nil, 0)
 		if err != nil {
 			panic(err)
 		}
 
-		for _, decl := range f.Decls {
-			// decl, ok := decl.(*ast.GenDecl)
-			decl, ok := decl.(*ast.FuncDecl)
-			if !ok {
-				continue
-			}
-			// if !ok || (decl.Tok != token.TYPE && decl.Tok != token.FUNC) {
-			// 	continue
-			// }
+		astFiles = append(astFiles, f)
+	}
 
-			if decl.Name.Name != "NewOrganizationHandler" {
-				continue
-			}
+	conf := types.Config{
+		IgnoreFuncBodies: true,
+		FakeImportC:      true,
+		Importer:         importer.Default(),
+	}
+	checkedPkg, err := conf.Check(pkgName, fset, astFiles, nil)
+	if err != nil {
+		panic(fmt.Errorf("Type check failed: %v", err))
+	}
 
-			println(decl.Name.Name)
-			for _, p := range decl.Type.Params.List {
-				for _, n := range p.Names {
-					print("\t" + n.Name)
-				}
-				p, ok := p.Type.(*ast.GenDecl)
-				if !ok || p.Tok != token.TYPE {
+	pkgDef := Package{
+		ImportPath: checkedPkg.Path(),
+		Name:       checkedPkg.Name(),
+		Funcs:      make(map[string]interface{}),
+		Structs:    make(map[string]interface{}),
+	}
+
+	scope := checkedPkg.Scope()
+	for _, name := range scope.Names() {
+		if ast.IsExported(name) {
+			obj := scope.Lookup(name)
+			switch obj := obj.(type) {
+			case *types.Func:
+				sig := obj.Type().(*types.Signature)
+				if sig.Recv() != nil {
 					continue
 				}
 
-				for _, spec := range p.Specs {
-					spec := spec.(*ast.TypeSpec)
-					println(" " + spec.Name.Name)
-				}
 			}
 
-			// for _, spec := range decl.Specs {
-			// 	spec := spec.(*ast.TypeSpec)
-			// 	println(spec.Name.Name)
-			// 	// if spec.Name.Name != id {
-			// 	// 	continue
-			// 	// }
-			// 	// return Pkg{Package: pkg, FileSet: fset}, spec, nil
-			// }
 		}
 	}
+
+	fmt.Println(pkgDef)
 }
