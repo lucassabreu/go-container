@@ -5,17 +5,17 @@ import (
 	"io"
 )
 
-const DURATION = "Duration"
-const DURATIONSLIDE = "DurationSlide"
-const FLOAT64 = "Float64"
-const INT = "Int"
-const INT64 = "Int64"
-const STRING = "String"
-const STRINGMAP = "StringMap"
-const STRINGMAPSTRING = "StringMapString"
-const STRINGMAPSTRINGSLICE = "StringMapStringSlice"
-const STRINGSLICE = "StringSlice"
-const TIME = "Time"
+const durationStr = "Duration"
+const durationSlideStr = "DurationSlide"
+const float64Str = "Float64"
+const intStr = "Int"
+const int64Str = "Int64"
+const stringStr = "String"
+const stringMapStr = "StringMap"
+const stringMapStringStr = "StringMapString"
+const stringMapStringSliceStr = "StringMapStringSlice"
+const stringSliceStr = "StringSlice"
+const timeStr = "Time"
 
 // ContainerFormatter generate golang code for the a Contaienr based on commands
 type ContainerFormatter struct {
@@ -59,17 +59,17 @@ type parameterValue struct {
 
 func (s parameterValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
 	switch castTo {
-	case DURATION:
-	case DURATIONSLIDE:
-	case FLOAT64:
-	case INT:
-	case INT64:
-	case STRING:
-	case STRINGMAP:
-	case STRINGMAPSTRING:
-	case STRINGMAPSTRINGSLICE:
-	case STRINGSLICE:
-	case TIME:
+	case durationStr:
+	case durationSlideStr:
+	case float64Str:
+	case intStr:
+	case int64Str:
+	case stringStr:
+	case stringMapStr:
+	case stringMapStringStr:
+	case stringMapStringSliceStr:
+	case stringSliceStr:
+	case timeStr:
 		_, err := w.Write([]byte(fmt.Sprintf("c.GetParametersBag().Get%s(\"%s\"))", castTo, s.parameterName)))
 		return err
 	}
@@ -84,16 +84,16 @@ type staticValue struct {
 
 func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
 	switch castTo {
-	case INT, INT64:
+	case intStr, int64Str:
 		_, err := w.Write([]byte(fmt.Sprintf("%d", s.value)))
 		return err
-	case FLOAT64:
+	case float64Str:
 		_, err := w.Write([]byte(fmt.Sprintf("%f", s.value)))
 		return err
-	case STRING:
+	case stringStr:
 		_, err := w.Write([]byte(fmt.Sprintf("\"%s\"", s.value)))
 		return err
-	case STRINGSLICE:
+	case stringSliceStr:
 		if _, err := w.Write([]byte("[...]string{\n")); err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 			return err
 		}
 		return nil
-	case STRINGMAPSTRING:
+	case stringMapStringStr:
 		if _, err := w.Write([]byte("map[string]string{\n")); err != nil {
 			return err
 		}
@@ -125,7 +125,7 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 			return err
 		}
 		return nil
-	case STRINGMAPSTRINGSLICE:
+	case stringMapStringSliceStr:
 		if _, err := w.Write([]byte("map[string][]string{\n")); err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 			return err
 		}
 		return nil
-	case DURATION:
+	case durationStr:
 		timePackage := c.GetPackageAlias("time")
 		if timePackage == nil {
 			s := "time"
@@ -161,7 +161,7 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 
 		_, err := w.Write([]byte(fmt.Sprintf("%s.ParseDuration(\"%s\")", *timePackage, s.value.(string))))
 		return err
-	case DURATIONSLIDE:
+	case durationSlideStr:
 		timePackage := c.GetPackageAlias("time")
 		if timePackage == nil {
 			s := "time"
@@ -184,14 +184,14 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 			return err
 		}
 		return nil
-	case TIME:
+	case timeStr:
 		_, err := w.Write([]byte(fmt.Sprintf("c.GetParametersBag().Get%s(\"%s\"))", castTo, s.value)))
 		return err
 	}
 
 	return fmt.Errorf(
 		"Static values should be one of this types: %v",
-		[...]string{DURATION, DURATIONSLIDE, FLOAT64, INT, INT64, STRING, STRINGMAP, STRINGMAPSTRING, STRINGMAPSTRINGSLICE, STRINGSLICE, TIME})
+		[...]string{durationStr, durationSlideStr, float64Str, intStr, int64Str, stringStr, stringMapStr, stringMapStringStr, stringMapStringSliceStr, stringSliceStr, timeStr})
 }
 
 type service interface {
