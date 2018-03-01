@@ -7,14 +7,14 @@ import (
 )
 
 // OutputTo Generates the Go code and send to the Writer
-func (cf ContainerFormatter) OutputTo(w io.Writer) error {
+func (cf ContainerGenerator) OutputTo(w io.Writer) error {
 	_, err := w.Write([]byte(""))
 	return err
 }
 
-// Generate a ContainerFormatter
-func Generate(cfg config.Config) (ContainerFormatter, error) {
-	c := ContainerFormatter{}
+// Generate a ContainerGenerator
+func Generate(cfg config.Config) (ContainerGenerator, error) {
+	c := ContainerGenerator{}
 
 	return c, nil
 }

@@ -17,17 +17,8 @@ const stringMapStringSliceStr = "StringMapStringSlice"
 const stringSliceStr = "StringSlice"
 const timeStr = "Time"
 
-// ContainerFormatter generate golang code for the a Contaienr based on commands
-type ContainerFormatter struct {
-	ContainerPackage string
-	ContainerName    string
-
-	Packages map[string]string
-	Services map[string]service
-}
-
 // GetPackageAlias return the alias for the package
-func (cf *ContainerFormatter) GetPackageAlias(pkg string) *string {
+func (cf *ContainerGenerator) GetPackageAlias(pkg string) *string {
 	if alias, ok := cf.Packages[pkg]; ok {
 		return &alias
 	}
@@ -36,19 +27,19 @@ func (cf *ContainerFormatter) GetPackageAlias(pkg string) *string {
 }
 
 // AddPackageAlias to the container
-func (cf *ContainerFormatter) AddPackageAlias(pkg string, alias string) {
+func (cf *ContainerGenerator) AddPackageAlias(pkg string, alias string) {
 	cf.Packages[pkg] = alias
 }
 
 type value interface {
-	Generate(c ContainerFormatter, castTo string, w io.Writer) error
+	Generate(c ContainerGenerator, castTo string, w io.Writer) error
 }
 
 type serviceValue struct {
 	serviceName string
 }
 
-func (s serviceValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
+func (s serviceValue) Generate(c ContainerGenerator, castTo string, w io.Writer) error {
 	_, err := w.Write([]byte(fmt.Sprintf("%s(c.Get%s())", castTo, s.serviceName)))
 	return err
 }
@@ -57,7 +48,7 @@ type parameterValue struct {
 	parameterName string
 }
 
-func (s parameterValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
+func (s parameterValue) Generate(c ContainerGenerator, castTo string, w io.Writer) error {
 	switch castTo {
 	case durationStr:
 	case durationSlideStr:
@@ -82,7 +73,7 @@ type staticValue struct {
 	value interface{}
 }
 
-func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) error {
+func (s staticValue) Generate(c ContainerGenerator, castTo string, w io.Writer) error {
 	switch castTo {
 	case intStr, int64Str:
 		_, err := w.Write([]byte(fmt.Sprintf("%d", s.value)))
@@ -196,7 +187,7 @@ func (s staticValue) Generate(c ContainerFormatter, castTo string, w io.Writer) 
 
 type service interface {
 	Name() string
-	Generate(c ContainerFormatter, w io.Writer) error
+	Generate(c ContainerGenerator, w io.Writer) error
 }
 
 type funcFactoryService struct {
