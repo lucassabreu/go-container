@@ -46,6 +46,7 @@ container:
         Extra: "spice"
 
     ProxyReporter:
+      docs: "makes things complicated"
       struct: basicapp.ProxyReporter
       fields:
         CSR: "@ComposedSimplerReportWithSimplerReport"

@@ -127,7 +127,7 @@ func (c *ReportContainer) GetComposedSimplerReportWithSimplerReport() *basicapp.
 	return c.composedSimplerReportWithSimplerReport
 }
 
-// GetProxyReporter returns the ProxyReporter service
+// GetProxyReporter makes things complicated
 func (c *ReportContainer) GetProxyReporter() *basicapp.ProxyReporter {
 	if c.proxyReporter == nil {
 		c.proxyReporter = &basicapp.ProxyReporter{
