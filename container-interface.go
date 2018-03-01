@@ -22,7 +22,6 @@ type ParametersBag interface {
 // Container is a basic definition for a container
 type Container interface {
 	Get(name string) interface{}
-	Set(name string, service interface{}) Container
 
 	SetParametersBag(bag ParametersBag) Container
 	GetParametersBag() ParametersBag
