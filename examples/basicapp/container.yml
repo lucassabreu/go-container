@@ -50,3 +50,6 @@ container:
       struct: basicapp.ProxyReporter
       fields:
         CSR: "@ComposedSimplerReportWithSimplerReport"
+
+  alias:
+    DefaultReport: "@SimplerReport"
