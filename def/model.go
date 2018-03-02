@@ -1,7 +1,7 @@
-package config
+package def
 
-// Config structed
-type Config struct {
+// Container structed
+type Container struct {
 	// Packages that will be used and their aliases (when needed)
 	Packages map[string]*string
 
