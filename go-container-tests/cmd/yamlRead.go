@@ -29,6 +29,12 @@ var yamlReadCmd = &cobra.Command{
 	Use:   "yamlRead",
 	Short: "Reads a YAML to the def.Config struct",
 	Run: func(cmd *cobra.Command, args []string) {
+		var s def.Container
+
+		yaml.Unmarshal([]byte(`services: { Test: {factory: banana}}`), &s)
+
+		fmt.Printf("%#v\n", len(s.Services))
+
 		for _, filename := range args {
 			importYaml(filename)
 		}
