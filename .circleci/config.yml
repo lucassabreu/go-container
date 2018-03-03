@@ -11,5 +11,6 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
+      - run: find .
       - run: go get -v ./...
       - run: go test -v ./...
