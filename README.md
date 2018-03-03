@@ -1,2 +1,2 @@
-go-container [![Build Status](https://travis-ci.org/lucassabreu/go-container.svg?branch=master)](https://travis-ci.org/lucassabreu/go-container)
+go-container [![Build Status](https://travis-ci.org/lucassabreu/go-container.svg?branch=master)](https://travis-ci.org/lucassabreu/go-container) [![codecov](https://codecov.io/gh/lucassabreu/go-container/branch/master/graph/badge.svg)](https://codecov.io/gh/lucassabreu/go-container)
 ============
