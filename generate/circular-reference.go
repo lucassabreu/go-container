@@ -20,7 +20,7 @@ func hasCircularReference(cDef def.Container) error {
 func lookForItself(service string, cDef def.Container, referenced ...string) error {
 	if contains(referenced, service) {
 		return fmt.Errorf(
-			"There a sincular reference for @%s -> @%s",
+			"There is a circular reference for @%s -> @%s",
 			strings.Join(referenced, " -> @"),
 			service,
 		)

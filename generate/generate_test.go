@@ -1,6 +1,8 @@
 package generate_test
 
 import (
+	"io/ioutil"
+	"regexp"
 	"testing"
 
 	"github.com/lucassabreu/go-container/def"
@@ -9,24 +11,41 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-var testCircularReferenteTable = map[string]string{
-	"Service Dependency not found": "services:\n Dependent:\n  factory: func\n  arguments: [@Dependency] } }",
-}
-
 func TestCircularReference(t *testing.T) {
-	var cDef def.Container
-	for expectedErr, yamlStr := range testCircularReferenteTable {
-		yaml.Unmarshal([]byte(yamlStr), &cDef)
-		t.Errorf("%#v", len(cDef.Services))
-		_, err := generate.Generate(cDef)
+	var tests []struct {
+		Container def.Container
+		Err       *string
+	}
 
-		if err == nil {
-			t.Errorf("expected error %s, got no error", expectedErr)
+	bytes, err := ioutil.ReadFile("./test-files/circular-reference.yml")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = yaml.Unmarshal(bytes, &tests)
+	if err != nil {
+		t.Error(err, ":", string(bytes))
+	}
+
+	for _, test := range tests {
+		_, err := generate.Generate(test.Container)
+
+		if test.Err == nil && err == nil {
 			continue
 		}
 
-		if err.Error() != expectedErr {
-			t.Errorf("expected error %s, got %s", expectedErr, err.Error())
+		if test.Err == nil && err != nil {
+			t.Errorf("expected no error, got '%s' error", err.Error())
+			continue
+		}
+
+		if err == nil {
+			t.Errorf("expected error '%s', got no error", *test.Err)
+			continue
+		}
+
+		if *test.Err != err.Error() && regexp.MustCompile(*test.Err).MatchString(err.Error()) {
+			t.Errorf("expected error '%s', got '%s'", *test.Err, err.Error())
 			continue
 		}
 	}
