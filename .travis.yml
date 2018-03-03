@@ -1,10 +1,12 @@
 language: go
-go: 
+go:
  - "1.10.x"
 
 script:
  - go get -v ./...
- - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+ - ./gen-code-cov.sh
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
+- go get -u github.com/schrej/godacov
+- godacov -t $CODACY_TOKEN -r ./coverage.out -c $TRAVIS_COMMIT
