@@ -4,6 +4,7 @@ container:
 
   packages:
     - "github.com/lucassabreu/go-container/examples/basicapp"
+    - "net/http": "magic"
 
   services:
     ComposedReport:

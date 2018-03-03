@@ -50,7 +50,7 @@ func (v *Value) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&value); err == nil {
 		if strings.HasPrefix(value, "@") {
 			v.valueType = ValueService
-			v.value = value[:1]
+			v.value = value[1:]
 			return nil
 		}
 
