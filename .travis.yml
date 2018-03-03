@@ -7,5 +7,6 @@ script:
  - ./gen-code-cov.sh
 
 after_success:
+- bash <(curl -s https://codecov.io/bash)
 - go get -u github.com/schrej/godacov
 - godacov -t $CODACY_TOKEN -r ./coverage.out -c $TRAVIS_COMMIT
