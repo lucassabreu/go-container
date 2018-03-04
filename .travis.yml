@@ -3,13 +3,11 @@ go:
  - "1.10.x"
 
 script:
- - go get -v ./...
- - ./gen-code-cov.sh
+ - make install
+ - make coverage
 
 after_success:
-- bash <(curl -s https://codecov.io/bash)
-- go get -u github.com/schrej/godacov
-- godacov -t $CODACY_TOKEN -r ./coverage.out -c $TRAVIS_COMMIT
+- make send-statiscs commit=$TRAVIS_COMMIT
 
 notifications:
   email:
