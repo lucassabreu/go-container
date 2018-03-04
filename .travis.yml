@@ -1,0 +1,17 @@
+language: go
+go:
+ - "1.10.x"
+
+script:
+ - go get -v ./...
+ - ./gen-code-cov.sh
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+- go get -u github.com/schrej/godacov
+- godacov -t $CODACY_TOKEN -r ./coverage.out -c $TRAVIS_COMMIT
+
+notifications:
+  email:
+    on_success: never # default: change
+    on_failure: always # default: always
