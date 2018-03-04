@@ -62,7 +62,7 @@ func ImportPackage(pkgName string) (Package, error) {
 	}
 	checkedPkg, err := conf.Check(pkgName, fset, astFiles, nil)
 	if err != nil {
-		panic(fmt.Errorf("Type check failed: %v", err))
+		return pkgDef, fmt.Errorf("Type check failed: %v", err)
 	}
 
 	pkgDef.ImportPath = checkedPkg.Path()
