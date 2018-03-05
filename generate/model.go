@@ -11,9 +11,15 @@ type ContainerGenerator struct {
 	ContainerName string
 	ContainerDocs string
 
-	Packages []packageDef
+	importedPackageNames []string
+	packages             []packageDef
 
 	Services map[string]serviceDef
+}
+
+// Packages imported for the container
+func (cg ContainerGenerator) Packages() []packageDef {
+	return cg.packages
 }
 
 type packageDef struct {
@@ -21,6 +27,14 @@ type packageDef struct {
 	FullName string
 	Alias    *string
 	Package  scan.Package
+}
+
+func (pDef packageDef) UniqueName() string {
+	if pDef.Alias != nil {
+		return *pDef.Alias
+	}
+
+	return pDef.Name
 }
 
 type serviceDef interface {
