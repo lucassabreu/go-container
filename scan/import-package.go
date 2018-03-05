@@ -23,9 +23,10 @@ type Package struct {
 
 // Func represents a Go func definition
 type Func struct {
-	Name    string
-	Params  []types.Type
-	Results []types.Type
+	Name     string
+	Params   []types.Type
+	Results  []types.Type
+	Variadic bool
 }
 
 // Struct represents a Go struct definition
@@ -82,9 +83,10 @@ func ImportPackage(pkgName string) (Package, error) {
 				}
 
 				pkgDef.Funcs[obj.Name()] = Func{
-					Name:    obj.Name(),
-					Params:  tupleToTypes(sig.Params()),
-					Results: tupleToTypes(sig.Results()),
+					Name:     obj.Name(),
+					Params:   tupleToTypes(sig.Params()),
+					Results:  tupleToTypes(sig.Results()),
+					Variadic: sig.Variadic(),
 				}
 			case *types.TypeName:
 				typ, ok := obj.Type().Underlying().(*types.Struct)
