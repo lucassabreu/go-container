@@ -17,11 +17,6 @@ type ContainerGenerator struct {
 	Services map[string]serviceDef
 }
 
-// Packages imported for the container
-func (cg ContainerGenerator) Packages() []packageDef {
-	return cg.packages
-}
-
 type packageDef struct {
 	Name     string
 	FullName string
@@ -35,6 +30,15 @@ func (pDef packageDef) UniqueName() string {
 	}
 
 	return pDef.Name
+}
+
+func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageDef {
+	for _, pkg := range cg.packages {
+		if pkg.UniqueName() == name {
+			return &pkg
+		}
+	}
+	return nil
 }
 
 type serviceDef interface {

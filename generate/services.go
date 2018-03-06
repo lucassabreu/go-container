@@ -3,8 +3,6 @@ package generate
 import (
 	"go/types"
 
-	"github.com/lucassabreu/go-container/def"
-
 	"github.com/lucassabreu/go-container/scan"
 )
 
@@ -27,6 +25,10 @@ type serviceByFactoryDef struct {
 	arguments   []valueDef
 }
 
-func newServiceByFactory(sd def.Service) serviceByFactoryDef {
-	return serviceByFactoryDef{}
+func (sd serviceByFactoryDef) Generate(cg ContainerGenerator) string {
+	return ""
+}
+
+type serviceByFailableFactoryDef struct {
+	serviceByFactoryDef
 }

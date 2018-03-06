@@ -2,6 +2,8 @@ package generate
 
 import (
 	"fmt"
+	"go/types"
+	"strings"
 
 	"github.com/lucassabreu/go-container/def"
 	"github.com/lucassabreu/go-container/scan"
@@ -19,6 +21,18 @@ func Generate(cDef def.Container) (cg ContainerGenerator, err error) {
 	for _, pkg := range cDef.Packages {
 		err := cg.registerPackage(pkg.Package, pkg.Alias)
 		if err != nil {
+			return ContainerGenerator{}, err
+		}
+	}
+
+	for name, serv := range cDef.Services {
+		if serv.IsByFactory() {
+			if err = cg.registerServiceByFactory(name, *serv.Factory, *serv.Arguments); err != nil {
+				return ContainerGenerator{}, err
+			}
+		}
+
+		if err = cg.registerServiceByInitialization(name, *serv.Struct, *serv.Fields); err != nil {
 			return ContainerGenerator{}, err
 		}
 	}
@@ -48,4 +62,74 @@ func (cg ContainerGenerator) registerPackage(pkgPath string, alias *string) erro
 		Package:  scannedPackage,
 	})
 	return nil
+}
+
+func breakIntoPackageAndDef(ref string) (pkg, def string) {
+	pieces := strings.Split(ref, ".")
+	pkg = pieces[0]
+	def = pieces[1]
+	return
+}
+
+func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, args []def.Value) error {
+	pkg, factoryFunc := breakIntoPackageAndDef(factoryFunc)
+
+	pkgDef := cg.getPackageByUniqueName(pkg)
+	if pkgDef == nil {
+		return fmt.Errorf("There is no imported package with name \"%s\"", pkg)
+	}
+
+	fnc, ok := pkgDef.Package.Funcs[factoryFunc]
+	if !ok {
+		return fmt.Errorf("There is no func named \"%s\" at the package %s", factoryFunc, pkgDef.Package.ImportPath)
+	}
+
+	if !fnc.Variadic && len(args) != len(fnc.Params) {
+		return fmt.Errorf("Func %s.%s expects %d parameters, %d informmed", pkg, factoryFunc, len(fnc.Params), len(args))
+	}
+
+	if fnc.Variadic && len(args) < (len(fnc.Params)-1) {
+		return fmt.Errorf("Func %s.%s expects at least %d parameters, only %d informmed", pkg, factoryFunc, len(fnc.Params)-1, len(args))
+	}
+
+	if len(fnc.Results) == 0 || len(fnc.Results) > 2 || (len(fnc.Results) == 2 && fnc.Results[1].String() != "error") {
+		return fmt.Errorf("Func %s.%s should return one value, or one value and one error", pkg, factoryFunc)
+	}
+
+	paramTypes := fnc.Params
+	for i := len(paramTypes); i < len(args); i++ {
+		paramTypes = append(paramTypes, fnc.Params[:1][0])
+	}
+
+	values := make([]valueDef, len(paramTypes))
+	for i, t := range paramTypes {
+		v, err := cg.createValueDef(t, args[i])
+		if err != nil {
+			return err
+		}
+		values[i] = v
+	}
+
+	cg.Services[name] = serviceByFactoryDef{
+		basicServiceDef: basicServiceDef{
+			ServiceName:       name,
+			ServiceRetultType: fnc.Results[0],
+		},
+		arguments: values,
+	}
+
+	if len(fnc.Results) == 2 {
+		cg.Services[name] = serviceByFailableFactoryDef{cg.Services[name].(serviceByFactoryDef)}
+	}
+
+	return nil
+}
+
+func (cg ContainerGenerator) registerServiceByInitialization(name, structName string, fields map[string]def.Value) error {
+	return nil
+}
+
+func (cg ContainerGenerator) createValueDef(t types.Type, arg def.Value) (valueDef, error) {
+	// arg.ValueType() == def.ValueSingle
+	return nil, nil
 }
