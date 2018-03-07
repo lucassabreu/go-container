@@ -12,19 +12,19 @@ type ContainerGenerator struct {
 	ContainerDocs string
 
 	importedPackageNames []string
-	packages             []packageDef
+	packages             []packageGen
 
-	Services map[string]serviceDef
+	Services map[string]serviceGen
 }
 
-type packageDef struct {
+type packageGen struct {
 	Name     string
 	FullName string
 	Alias    *string
 	Package  scan.Package
 }
 
-func (pDef packageDef) UniqueName() string {
+func (pDef packageGen) UniqueName() string {
 	if pDef.Alias != nil {
 		return *pDef.Alias
 	}
@@ -32,7 +32,7 @@ func (pDef packageDef) UniqueName() string {
 	return pDef.Name
 }
 
-func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageDef {
+func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageGen {
 	for _, pkg := range cg.packages {
 		if pkg.UniqueName() == name {
 			return &pkg
@@ -41,13 +41,13 @@ func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageDef {
 	return nil
 }
 
-type serviceDef interface {
+type serviceGen interface {
 	Name() string
 	ResultType() types.Type
 	Generate(ContainerGenerator) string
 }
 
-type valueDef interface {
+type valueGen interface {
 	Generate(ContainerGenerator) string
 	NeedsPointer() bool
 }

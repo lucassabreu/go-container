@@ -55,7 +55,7 @@ func (cg ContainerGenerator) registerPackage(pkgPath string, alias *string) erro
 		return fmt.Errorf("Aready exists a package with the imported name \"%s\"", uniqueName)
 	}
 
-	cg.packages = append(cg.packages, packageDef{
+	cg.packages = append(cg.packages, packageGen{
 		Alias:    alias,
 		FullName: scannedPackage.ImportPath,
 		Name:     scannedPackage.Name,
@@ -74,14 +74,14 @@ func breakIntoPackageAndDef(ref string) (pkg, def string) {
 func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, args []def.Value) error {
 	pkg, factoryFunc := breakIntoPackageAndDef(factoryFunc)
 
-	pkgDef := cg.getPackageByUniqueName(pkg)
-	if pkgDef == nil {
+	pkgGen := cg.getPackageByUniqueName(pkg)
+	if pkgGen == nil {
 		return fmt.Errorf("There is no imported package with name \"%s\"", pkg)
 	}
 
-	fnc, ok := pkgDef.Package.Funcs[factoryFunc]
+	fnc, ok := pkgGen.Package.Funcs[factoryFunc]
 	if !ok {
-		return fmt.Errorf("There is no func named \"%s\" at the package %s", factoryFunc, pkgDef.Package.ImportPath)
+		return fmt.Errorf("There is no func named \"%s\" at the package %s", factoryFunc, pkgGen.Package.ImportPath)
 	}
 
 	if !fnc.Variadic && len(args) != len(fnc.Params) {
@@ -101,17 +101,17 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 		paramTypes = append(paramTypes, fnc.Params[:1][0])
 	}
 
-	values := make([]valueDef, len(paramTypes))
+	values := make([]valueGen, len(paramTypes))
 	for i, t := range paramTypes {
-		v, err := cg.createValueDef(t, args[i])
+		v, err := cg.createValueGen(t, args[i])
 		if err != nil {
 			return err
 		}
 		values[i] = v
 	}
 
-	cg.Services[name] = serviceByFactoryDef{
-		basicServiceDef: basicServiceDef{
+	cg.Services[name] = serviceByFactoryGen{
+		basicServiceGen: basicServiceGen{
 			ServiceName:       name,
 			ServiceRetultType: fnc.Results[0],
 		},
@@ -119,7 +119,7 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 	}
 
 	if len(fnc.Results) == 2 {
-		cg.Services[name] = serviceByFailableFactoryDef{cg.Services[name].(serviceByFactoryDef)}
+		cg.Services[name] = serviceByFailableFactoryGen{cg.Services[name].(serviceByFactoryGen)}
 	}
 
 	return nil
@@ -129,10 +129,10 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 	return nil
 }
 
-func (cg ContainerGenerator) createValueDef(t types.Type, arg def.Value) (v valueDef, err error) {
+func (cg ContainerGenerator) createValueGen(t types.Type, arg def.Value) (v valueGen, err error) {
 	switch arg.ValueType() {
 	case def.ValueSingle:
-		v = constValueDef{
+		v = constValueGen{
 			value: arg.GetSingleValue(),
 			typ:   t,
 		}

@@ -6,29 +6,29 @@ import (
 	"github.com/lucassabreu/go-container/scan"
 )
 
-type basicServiceDef struct {
+type basicServiceGen struct {
 	ServiceName       string
 	ServiceRetultType types.Type
 }
 
-func (b basicServiceDef) Name() string {
+func (b basicServiceGen) Name() string {
 	return b.ServiceName
 }
 
-func (b basicServiceDef) ResultType() types.Type {
+func (b basicServiceGen) ResultType() types.Type {
 	return b.ServiceRetultType
 }
 
-type serviceByFactoryDef struct {
-	basicServiceDef
+type serviceByFactoryGen struct {
+	basicServiceGen
 	factoryFunc scan.Func
-	arguments   []valueDef
+	arguments   []valueGen
 }
 
-func (sd serviceByFactoryDef) Generate(cg ContainerGenerator) string {
+func (sd serviceByFactoryGen) Generate(cg ContainerGenerator) string {
 	return ""
 }
 
-type serviceByFailableFactoryDef struct {
-	serviceByFactoryDef
+type serviceByFailableFactoryGen struct {
+	serviceByFactoryGen
 }
