@@ -129,7 +129,14 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 	return nil
 }
 
-func (cg ContainerGenerator) createValueDef(t types.Type, arg def.Value) (valueDef, error) {
-	// arg.ValueType() == def.ValueSingle
+func (cg ContainerGenerator) createValueDef(t types.Type, arg def.Value) (v valueDef, err error) {
+	switch arg.ValueType() {
+	case def.ValueSingle:
+		v = constValueDef{
+			value: arg.GetSingleValue(),
+			typ:   t,
+		}
+		return
+	}
 	return nil, nil
 }

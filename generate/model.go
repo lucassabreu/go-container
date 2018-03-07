@@ -48,5 +48,6 @@ type serviceDef interface {
 }
 
 type valueDef interface {
-	Generate(ContainerGenerator, types.Type) string
+	Generate(ContainerGenerator) string
+	NeedsPointer() bool
 }
