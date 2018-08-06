@@ -8,3 +8,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Basic interfaces [Container e ParametersBag](./container-interface.go) to be used for container aware services
+- Some improvments on Makefile
