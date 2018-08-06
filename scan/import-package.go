@@ -33,6 +33,7 @@ type Func struct {
 type Struct struct {
 	Name   string
 	Fields map[string]types.Type
+	Type   *types.Struct
 }
 
 // ImportPackage will find and read the definitions on a package and return it
@@ -97,6 +98,7 @@ func ImportPackage(pkgName string) (Package, error) {
 				structDef := Struct{
 					Name:   obj.Name(),
 					Fields: make(map[string]types.Type),
+					Type:   typ,
 				}
 
 				for i := 0; i < typ.NumFields(); i++ {

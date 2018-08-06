@@ -113,7 +113,7 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 	cg.Services[name] = serviceByFactoryGen{
 		basicServiceGen: basicServiceGen{
 			ServiceName:       name,
-			ServiceRetultType: fnc.Results[0],
+			ServiceResultType: fnc.Results[0],
 		},
 		arguments: values,
 	}
@@ -126,6 +126,42 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 }
 
 func (cg ContainerGenerator) registerServiceByInitialization(name, structName string, fields map[string]def.Value) error {
+	pkg, structName := breakIntoPackageAndDef(structName)
+
+	pkgGen := cg.getPackageByUniqueName(pkg)
+	if pkgGen == nil {
+		return fmt.Errorf("There is no imported package with name \"%s\"", pkg)
+	}
+
+	structType, ok := pkgGen.Package.Structs[structName]
+	if !ok {
+		return fmt.Errorf("There is no struct named \"%s\" at the package %s", structName, pkgGen.Package.ImportPath)
+	}
+
+	initValues := make(map[string]valueGen, len(fields))
+	for fieldName, defValue := range fields {
+		fieldType, ok := structType.Fields[fieldName]
+		if !ok {
+			return fmt.Errorf("There is no field \"%s\" at the struct %s.%s (service %s)", fieldName, pkg, structName, name)
+		}
+
+		v, err := cg.createValueGen(fieldType, defValue)
+		if err != nil {
+			return err
+		}
+
+		initValues[fieldName] = v
+	}
+
+	cg.Services[name] = serviceByInitializationGen{
+		basicServiceGen: basicServiceGen{
+			ServiceName:       name,
+			ServiceResultType: structType.Type,
+		},
+		initStruct: structType,
+		values:     initValues,
+	}
+
 	return nil
 }
 

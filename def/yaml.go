@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// UnmarshalYAML fot the Package
+// UnmarshalYAML for the Package
 func (p *Package) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	defaultErr := fmt.Errorf("the package should a single strig or a map of strings with a element")
 
@@ -30,7 +30,7 @@ func (p *Package) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return defaultErr
 }
 
-// UnmarshalYAML fot the Value
+// UnmarshalYAML for the Value
 func (v *Value) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var structValue map[string]Value
 	if err := unmarshal(&structValue); err == nil {

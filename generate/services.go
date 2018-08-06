@@ -8,7 +8,7 @@ import (
 
 type basicServiceGen struct {
 	ServiceName       string
-	ServiceRetultType types.Type
+	ServiceResultType types.Type
 }
 
 func (b basicServiceGen) Name() string {
@@ -16,7 +16,7 @@ func (b basicServiceGen) Name() string {
 }
 
 func (b basicServiceGen) ResultType() types.Type {
-	return b.ServiceRetultType
+	return b.ServiceResultType
 }
 
 type serviceByFactoryGen struct {
@@ -31,4 +31,14 @@ func (sd serviceByFactoryGen) Generate(cg ContainerGenerator) string {
 
 type serviceByFailableFactoryGen struct {
 	serviceByFactoryGen
+}
+
+type serviceByInitializationGen struct {
+	basicServiceGen
+	initStruct scan.Struct
+	values     map[string]valueGen
+}
+
+func (sd serviceByInitializationGen) Generate(cg ContainerGenerator) string {
+	return ""
 }
