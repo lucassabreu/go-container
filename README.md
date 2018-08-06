@@ -1,2 +1,6 @@
 go-container [![](https://img.shields.io/badge/godoc-reference-5272B4.svg)](https://godoc.org/github.com/lucassabreu/go-container)[![Build Status](https://travis-ci.org/lucassabreu/go-container.svg?branch=master)](https://travis-ci.org/lucassabreu/go-container) [![codecov](https://codecov.io/gh/lucassabreu/go-container/branch/master/graph/badge.svg)](https://codecov.io/gh/lucassabreu/go-container) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2d41d2086b845cd9ac8daf4d22fb771)](https://www.codacy.com/app/lucassabreu/go-container?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lucassabreu/go-container&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/f2d41d2086b845cd9ac8daf4d22fb771)](https://www.codacy.com/app/lucassabreu/go-container?utm_source=github.com&utm_medium=referral&utm_content=lucassabreu/go-container&utm_campaign=Badge_Coverage) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flucassabreu%2Fgo-container.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Flucassabreu%2Fgo-container?ref=badge_shield)
 ============
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flucassabreu%2Fgo-container.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Flucassabreu%2Fgo-container?ref=badge_large)
+=======
