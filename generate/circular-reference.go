@@ -38,14 +38,14 @@ func lookForItself(service string, cDef def.Container, referenced ...string) err
 			return nil
 		}
 
-		return lookupSlice(*sDef.Arguments, cDef, referenced...)
+		return lookupSlice(sDef.Arguments, cDef, referenced...)
 	}
 
 	if sDef.Fields == nil {
 		return nil
 	}
 
-	return lookupStruct(*sDef.Fields, cDef, referenced...)
+	return lookupStruct(sDef.Fields, cDef, referenced...)
 }
 
 func contains(s []string, e string) bool {

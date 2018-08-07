@@ -34,3 +34,11 @@ func NewTheyDo(toDo func(string)) TheyDo {
 		ToDo: toDo,
 	}
 }
+
+type JustDo struct {
+	That string
+}
+
+func (d JustDo) Do() {
+	println(d.That)
+}

@@ -22,6 +22,12 @@ func TestYamlUnmarshaller(t *testing.T) {
 				},
 				Services: map[string]def.Service{
 					"IDo": def.NewFactoryService("test.IDo"),
+					"JustDo": def.NewInitializationService(
+						"test.JustDo",
+						map[string]def.Value{
+							"That": def.NewSingleValue("other thing"),
+						},
+					),
 				},
 			},
 			yaml: `
@@ -31,6 +37,11 @@ packages:
 services:
   IDo:
     factory: test.IDo
+
+  JustDo:
+    struct: test.JustDo
+    fields:
+      That: "other thing"
 `,
 		},
 	}

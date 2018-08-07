@@ -22,15 +22,23 @@ type Package struct {
 // Service represents a entry in the services config
 type Service struct {
 	Factory   *string
-	Arguments *[]Value
+	Arguments []Value
 	Struct    *string
-	Fields    *map[string]Value
+	Fields    map[string]Value
 }
 
 func NewFactoryService(factoryFuncName string, args ...Value) Service {
-	return Service{
+	s := Service{
 		Factory:   &factoryFuncName,
-		Arguments: &args,
+		Arguments: args,
+	}
+	return s
+}
+
+func NewInitializationService(structName string, fields map[string]Value) Service {
+	return Service{
+		Struct: &structName,
+		Fields: fields,
 	}
 }
 
@@ -87,4 +95,32 @@ func (v Value) GetSlice() []Value {
 // GetService should be used to get the value of a ValueService type
 func (v Value) GetService() string {
 	return v.value.(string)
+}
+
+func NewSingleValue(v string) Value {
+	return Value{
+		valueType: ValueSingle,
+		value:     v,
+	}
+}
+
+func NewServiceValue(v string) Value {
+	return Value{
+		valueType: ValueService,
+		value:     v,
+	}
+}
+
+func NewSliceValue(v []Value) Value {
+	return Value{
+		valueType: ValueSlice,
+		value:     v,
+	}
+}
+
+func NewStructValue(v map[string]Value) Value {
+	return Value{
+		valueType: ValueStruct,
+		value:     v,
+	}
 }

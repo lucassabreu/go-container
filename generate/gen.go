@@ -27,12 +27,12 @@ func Generate(cDef def.Container) (cg ContainerGenerator, err error) {
 
 	for name, serv := range cDef.Services {
 		if serv.IsByFactory() {
-			if err = cg.registerServiceByFactory(name, *serv.Factory, *serv.Arguments); err != nil {
+			if err = cg.registerServiceByFactory(name, *serv.Factory, serv.Arguments); err != nil {
 				return ContainerGenerator{}, err
 			}
 		}
 
-		if err = cg.registerServiceByInitialization(name, *serv.Struct, *serv.Fields); err != nil {
+		if err = cg.registerServiceByInitialization(name, *serv.Struct, serv.Fields); err != nil {
 			return ContainerGenerator{}, err
 		}
 	}

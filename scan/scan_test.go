@@ -28,7 +28,7 @@ func TestImportPackage(t *testing.T) {
 		t.Fatalf("Should have found 'NewTheyDo' exported func")
 	}
 
-	require.Equal(t, 1, len(pkg.Structs))
+	require.Equal(t, 2, len(pkg.Structs))
 
 	if _, ok := pkg.Structs["TheyDo"]; !ok {
 		t.Fatalf("Should have found 'TheyDo' exported struct")
@@ -62,6 +62,9 @@ func TestImportPackage(t *testing.T) {
 		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/scan/test.TheyDo)
 
 	Structs:
+		JustDo{
+			That string,
+		}
 		TheyDo{
 			ToDo func(string),
 		}

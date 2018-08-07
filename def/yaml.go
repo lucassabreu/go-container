@@ -34,28 +34,24 @@ func (p *Package) UnmarshalYAML(unmarshal func(interface{}) error) error {
 func (v *Value) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var structValue map[string]Value
 	if err := unmarshal(&structValue); err == nil {
-		v.valueType = ValueStruct
-		v.value = structValue
+		*v = NewStructValue(structValue)
 		return nil
 	}
 
 	var sliceValue []Value
 	if err := unmarshal(&sliceValue); err == nil {
-		v.valueType = ValueSlice
-		v.value = sliceValue
+		*v = NewSliceValue(sliceValue)
 		return nil
 	}
 
 	var value string
 	if err := unmarshal(&value); err == nil {
 		if strings.HasPrefix(value, "@") {
-			v.valueType = ValueService
-			v.value = value[1:]
+			*v = NewServiceValue(value[1:])
 			return nil
 		}
 
-		v.valueType = ValueSlice
-		v.value = value
+		*v = NewSingleValue(value)
 		return nil
 	}
 
