@@ -27,6 +27,13 @@ type Service struct {
 	Fields    *map[string]Value
 }
 
+func NewFactoryService(factoryFuncName string, args ...Value) Service {
+	return Service{
+		Factory:   &factoryFuncName,
+		Arguments: &args,
+	}
+}
+
 // IsByFactory when a factory function factory should be called
 func (s Service) IsByFactory() bool {
 	return s.Factory != nil
