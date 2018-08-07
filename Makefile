@@ -12,10 +12,6 @@ update-dev-deps: ## update dev tools
 	go get -u -v golang.org/x/lint/golint
 	go get -u -v github.com/schrej/godacov
 
-tests-watch:
-	go get github.com/smartystreets/goconvey
-	goconvey -port $(testWatchPort)
-
 install: ## install project dependences
 	go get -v ./...
 
