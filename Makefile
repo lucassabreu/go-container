@@ -13,7 +13,7 @@ update-dev-deps: ## update dev tools
 	go get -u -v github.com/schrej/godacov
 
 install: ## install project dependences
-	go get -v ./...
+	go get -t -v ./...
 
 lint: ## run got lint
 	go get golang.org/x/lint/golint
