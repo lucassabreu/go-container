@@ -10,6 +10,7 @@ import (
 	"go/types"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -34,6 +35,32 @@ type Struct struct {
 	Name   string
 	Fields map[string]types.Type
 	Type   *types.Struct
+}
+
+// GetFuncsNames returns name of the funcs of the package
+func (p Package) GetFuncsNames() []string {
+	names := make([]string, len(p.Funcs))
+
+	i := 0
+	for name := range p.Funcs {
+		names[i] = name
+		i = i + 1
+	}
+
+	return names
+}
+
+// GetStructsNames returns name of the structs of the package
+func (p Package) GetStructsNames() []string {
+	names := make([]string, len(p.Structs))
+
+	i := 0
+	for name := range p.Structs {
+		names[i] = name
+		i = i + 1
+	}
+
+	return names
 }
 
 // ImportPackage will find and read the definitions on a package and return it
@@ -134,7 +161,12 @@ func (p Package) String() string {
 	b.WriteString(" (")
 	b.WriteString(p.ImportPath)
 	b.WriteString(")\n\tFuncs:\n")
-	for _, f := range p.Funcs {
+
+	names := p.GetFuncsNames()
+	sort.Strings(names)
+
+	for _, name := range names {
+		f := p.Funcs[name]
 		b.WriteString("\t\t")
 		b.WriteString(f.Name)
 		b.WriteRune('(')
@@ -155,7 +187,11 @@ func (p Package) String() string {
 	}
 
 	b.WriteString("\n\tStructs:\n")
-	for _, f := range p.Structs {
+
+	names = p.GetStructsNames()
+	sort.Strings(names)
+	for _, name := range names {
+		f := p.Structs[name]
 		b.WriteString("\t\t")
 		b.WriteString(f.Name)
 		b.WriteString("{\n")
