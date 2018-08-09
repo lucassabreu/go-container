@@ -9,28 +9,31 @@ import (
 )
 
 func TestYamlUnmarshaller(t *testing.T) {
-	type testCase struct {
-		expected def.Container
-		yaml     string
-	}
 
-	tests := map[string]testCase{
-		"simple": testCase{
-			expected: def.Container{
-				Packages: []def.Package{
-					def.Package{Package: "github.com/lucassabreu/go-container/test"},
+	expected := def.Container{
+		Packages: []def.Package{
+			def.Package{Package: "github.com/lucassabreu/go-container/test"},
+		},
+		Services: map[string]def.Service{
+			"IDo":      def.NewFactoryService("test.IDo"),
+			"JustDoIt": def.NewFactoryService("test.NewJustDo", def.NewSingleValue("it")),
+			"JustDo": def.NewInitializationService(
+				"test.JustDo",
+				map[string]def.Value{
+					"That": def.NewSingleValue("other thing"),
 				},
-				Services: map[string]def.Service{
-					"IDo": def.NewFactoryService("test.IDo"),
-					"JustDo": def.NewInitializationService(
-						"test.JustDo",
-						map[string]def.Value{
-							"That": def.NewSingleValue("other thing"),
-						},
-					),
-				},
-			},
-			yaml: `
+			),
+			"SomethingDo": def.NewFactoryService("test.NewSomethingDo", def.NewServiceValue("IDo")),
+			"DoALot": def.NewFactoryService(
+				"test.NewDoALot",
+				def.NewSliceValue([]def.Value{
+					def.NewServiceValue("IDo"),
+					def.NewServiceValue("SomethingDo"),
+				}),
+			),
+		},
+	}
+	yamlStr := `
 packages:
   - github.com/lucassabreu/go-container/test
 
@@ -38,22 +41,29 @@ services:
   IDo:
     factory: test.IDo
 
+  JustDoIt:
+    factory: test.NewJustDo
+    arguments:
+      - "it"
+
   JustDo:
     struct: test.JustDo
     fields:
       That: "other thing"
-`,
-		},
+
+  SomethingDo:
+    factory: test.NewSomethingDo
+    arguments: [ "@IDo" ]
+
+  DoALot:
+    factory: test.NewDoALot
+    arguments: [ [ "@IDo", "@SomethingDo" ] ]
+`
+
+	converted := def.Container{}
+	if err := yaml.Unmarshal([]byte(yamlStr), &converted); err != nil {
+		t.Fatal(err)
 	}
 
-	for name, testCase := range tests {
-		t.Run(name, func(t *testing.T) {
-			converted := def.Container{}
-			if err := yaml.Unmarshal([]byte(testCase.yaml), &converted); err != nil {
-				t.Fatal(err)
-			}
-
-			require.Equal(t, testCase.expected, converted)
-		})
-	}
+	require.Equal(t, expected, converted)
 }

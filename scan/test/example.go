@@ -42,3 +42,33 @@ type JustDo struct {
 func (d JustDo) Do() {
 	println(d.That)
 }
+
+func NewJustDo(that string) JustDo {
+	return JustDo{That: that}
+}
+
+type SomethingDo struct {
+	Something Doer
+}
+
+func NewSomethingDo(do Doer) SomethingDo {
+	return SomethingDo{Something: do}
+}
+
+func (s SomethingDo) Do() {
+	s.Something.Do()
+}
+
+type doALot struct {
+	things []Doer
+}
+
+func NewDoALot(doers []Doer) doALot {
+	return doALot{things: doers}
+}
+
+func (a doALot) Do() {
+	for _, doer := range a.things {
+		doer.Do()
+	}
+}
