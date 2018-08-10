@@ -19,6 +19,17 @@ type Package struct {
 	Alias   *string
 }
 
+func NewPackage(pkg string) Package {
+	return Package{Package: pkg}
+}
+
+func NewPackageWithAlias(pkg, alias string) Package {
+	return Package{
+		Package: pkg,
+		Alias:   &alias,
+	}
+}
+
 // Service represents a entry in the services config
 type Service struct {
 	Factory   *string

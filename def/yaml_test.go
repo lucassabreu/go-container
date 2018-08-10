@@ -12,7 +12,8 @@ func TestYamlUnmarshaller(t *testing.T) {
 
 	expected := def.Container{
 		Packages: []def.Package{
-			def.Package{Package: "github.com/lucassabreu/go-container/test"},
+			def.NewPackage("github.com/lucassabreu/go-container/test"),
+			def.NewPackageWithAlias("github.com/lucassabreu/go-container/example", "ex"),
 		},
 		Services: map[string]def.Service{
 			"IDo":      def.NewFactoryService("test.IDo"),
@@ -31,11 +32,20 @@ func TestYamlUnmarshaller(t *testing.T) {
 					def.NewServiceValue("SomethingDo"),
 				}),
 			),
+			"ToDo": def.NewFactoryService(
+				"ex.NewToDo",
+				def.NewStructValue(map[string]def.Value{
+					"first":  def.NewSingleValue("wake up"),
+					"second": def.NewSingleValue("drink coffe"),
+					"third":  def.NewSingleValue("smile"),
+				}),
+			),
 		},
 	}
 	yamlStr := `
 packages:
   - github.com/lucassabreu/go-container/test
+  - github.com/lucassabreu/go-container/example: ex
 
 services:
   IDo:
@@ -58,6 +68,13 @@ services:
   DoALot:
     factory: test.NewDoALot
     arguments: [ [ "@IDo", "@SomethingDo" ] ]
+
+  ToDo:
+    factory: ex.NewToDo
+    arguments:
+        - first: "wake up"
+          second: "drink coffe"
+          third: "smile"
 `
 
 	converted := def.Container{}

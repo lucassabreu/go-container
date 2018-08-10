@@ -7,7 +7,7 @@ import (
 
 // UnmarshalYAML for the Package
 func (p *Package) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	defaultErr := fmt.Errorf("the package should a single strig or a map of strings with a element")
+	defaultErr := fmt.Errorf("the package should a single string or a map of strings with a element")
 
 	var aliasedPackage map[string]string
 	if err := unmarshal(&aliasedPackage); err == nil {
