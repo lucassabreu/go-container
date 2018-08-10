@@ -7,31 +7,9 @@ import (
 	"github.com/lucassabreu/go-container/def"
 
 	"github.com/lucassabreu/go-container/generate"
-	yaml "gopkg.in/yaml.v2"
 )
 
-func TestCircularReference(t *testing.T) {
-	var tests []struct {
-		Container def.Container
-		Err       *string
-	}
-
-	bytes := []byte(`
-- err: "Service Dependency not found"
-  container:
-    services:
-      Dependent:
-        factory: test.NewDependent
-        arguments:
-          - "@Dependency"
-
-- err: "Service OtherDependency not found"
-  container:
-    services:
-      Dependent:
-        struct: test.Dependent
-        fields:
-          OtherDependency: "@OtherDependency"
+var bytes = []byte(`
 
 - err: "There is a circular reference for @Service\\\\w -> @Service\\\\w -> @Service\\\\w"
   container:
@@ -68,6 +46,43 @@ func TestCircularReference(t *testing.T) {
             - "@Factory2"
             - "@MiddleOne"
 
+`)
+
+func TestCircularReference(t *testing.T) {
+	type testCase struct {
+		Container def.Container
+		Err       string
+	}
+
+	tests := map[string]testCase{
+		"dependency_not_found_factory": testCase{
+			Err: "Service Dependency not found",
+			Container: def.Container{
+				Services: map[string]def.Service{
+					"Dependent": def.NewFactoryService("test.NewDependent", def.NewServiceValue("Dependency")),
+				},
+			},
+		},
+		"dependency_not_found_struct": testCase{
+			Err: "Service OtherDependency not found",
+			Container: def.Container{
+				Services: map[string]def.Service{
+					"Dependent": def.NewInitializationService(
+						"test.Dependent",
+						map[string]def.Value{
+							"OtherDependency": def.NewServiceValue("@OtherDependency"),
+						},
+					),
+				},
+			},
+		},
+		"no_problem_with_struct_and_factory": testCase {
+			Container: def.Container{
+				Services: map[string]def.Service {
+					"Factory": def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")
+				},
+			},
+		},
 - container:
   services:
     Factory:
@@ -77,33 +92,30 @@ func TestCircularReference(t *testing.T) {
       struct: test.Service
       fields:
         - Service: "@Factory"
-`)
-
-	err := yaml.Unmarshal(bytes, &tests)
-	if err != nil {
-		t.Error(err, ":", string(bytes))
 	}
 
-	for _, test := range tests {
-		_, err := generate.Generate(test.Container)
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := generate.Generate(test.Container)
 
-		if test.Err == nil && err == nil {
-			continue
-		}
+			if len(test.Err) == 0 && err == nil {
+				return
+			}
 
-		if test.Err == nil && err != nil {
-			t.Errorf("expected no error, got '%s' error", err.Error())
-			continue
-		}
+			if len(test.Err) == 0 && err != nil {
+				t.Errorf("expected no error, got '%s' error", err.Error())
+				return
+			}
 
-		if err == nil {
-			t.Errorf("expected error '%s', got no error", *test.Err)
-			continue
-		}
+			if err == nil {
+				t.Errorf("expected error '%s', got no error", test.Err)
+				return
+			}
 
-		if *test.Err != err.Error() && regexp.MustCompile(*test.Err).MatchString(err.Error()) {
-			t.Errorf("expected error '%s', got '%s'", *test.Err, err.Error())
-			continue
-		}
+			if test.Err != err.Error() && regexp.MustCompile(test.Err).MatchString(err.Error()) {
+				t.Errorf("expected error '%s', got '%s'", test.Err, err.Error())
+				return
+			}
+		})
 	}
 }
