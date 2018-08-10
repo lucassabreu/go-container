@@ -9,7 +9,7 @@ import (
 )
 
 func TestImportPackage(t *testing.T) {
-	pkgName := "github.com/lucassabreu/go-container/scan/test"
+	pkgName := "github.com/lucassabreu/go-container/examples/test"
 	pkg, err := scan.ImportPackage(pkgName)
 	if err != nil {
 		t.Errorf("Should not fail, error received: %v", err)
@@ -56,20 +56,20 @@ func TestImportPackage(t *testing.T) {
 
 	require.Equal(
 		t,
-		`Package: example (github.com/lucassabreu/go-container/scan/test)
+		`Package: example (github.com/lucassabreu/go-container/examples/test)
 	Funcs:
-		NewDoALot([]github.com/lucassabreu/go-container/scan/test.Doer) (github.com/lucassabreu/go-container/scan/test.doALot)
-		NewIDo() (github.com/lucassabreu/go-container/scan/test.Doer)
-		NewJustDo(string) (github.com/lucassabreu/go-container/scan/test.JustDo)
-		NewSomethingDo(github.com/lucassabreu/go-container/scan/test.Doer) (github.com/lucassabreu/go-container/scan/test.SomethingDo)
-		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/scan/test.TheyDo)
+		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.doALot)
+		NewIDo() (github.com/lucassabreu/go-container/examples/test.Doer)
+		NewJustDo(string) (github.com/lucassabreu/go-container/examples/test.JustDo)
+		NewSomethingDo(github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.SomethingDo)
+		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/examples/test.TheyDo)
 
 	Structs:
 		JustDo{
 			That string,
 		}
 		SomethingDo{
-			Something github.com/lucassabreu/go-container/scan/test.Doer,
+			Something github.com/lucassabreu/go-container/examples/test.Doer,
 		}
 		TheyDo{
 			ToDo func(string),
@@ -80,7 +80,7 @@ func TestImportPackage(t *testing.T) {
 }
 
 func TestImportPackageShouldFailWhenPackageNotExists(t *testing.T) {
-	pkgName := "github.com/lucassabreu/go-container/scan/test1"
+	pkgName := "github.com/lucassabreu/go-container/examples/test1"
 	_, err := scan.ImportPackage(pkgName)
 	if err == nil {
 		t.Errorf("Should fail, no error received")
