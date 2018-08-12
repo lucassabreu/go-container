@@ -1,54 +1,14 @@
 package generate_test
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/lucassabreu/go-container/def"
-
 	"github.com/lucassabreu/go-container/generate"
+	"github.com/stretchr/testify/require"
 )
 
-var bytes = []byte(`
-
-- err: "There is a circular reference for @Service\\\\w -> @Service\\\\w -> @Service\\\\w"
-  container:
-    services:
-      Service1:
-        factory: test.NewService
-        arguments:
-          - "@Service2"
-      Service2:
-        factory: test.NewService
-        arguments:
-          - "@Service1"
-
-- err: "There is a circular reference for @\\\\w* -> @\\\\w* -> @\\\\w* -> @\\\\w*"
-  container:
-    services:
-      Factory:
-        factory: test.NewService
-        arguments:
-          - Service: "@Struct"
-      Struct2:
-        struct: test.Service
-      Factory2:
-        factory: test.Service
-      MiddleOne:
-        factory: test.NewService
-        arguments:
-          - "@Factory"
-      Struct:
-        struct: test.Service
-        fields:
-          Services:
-            - "@Struct2"
-            - "@Factory2"
-            - "@MiddleOne"
-
-`)
-
-func TestCircularReference(t *testing.T) {
+func TestServiceReferences(t *testing.T) {
 	type testCase struct {
 		Container def.Container
 		Err       string
@@ -70,52 +30,56 @@ func TestCircularReference(t *testing.T) {
 					"Dependent": def.NewInitializationService(
 						"test.Dependent",
 						map[string]def.Value{
-							"OtherDependency": def.NewServiceValue("@OtherDependency"),
+							"OtherDependency": def.NewServiceValue("OtherDependency"),
 						},
 					),
 				},
 			},
 		},
-		"no_problem_with_struct_and_factory": testCase {
+		"factory_uses_struct_that_uses_factory": testCase{
+			Err: "There is a circular reference for @Factory -> @Struct -> @Factory",
 			Container: def.Container{
-				Services: map[string]def.Service {
-					"Factory": def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")
+				Services: map[string]def.Service{
+					"Factory": def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")),
+					"Struct": def.NewInitializationService("test.Service", map[string]def.Value{
+						"Service": def.NewServiceValue("Factory"),
+					}),
 				},
 			},
 		},
-- container:
-  services:
-    Factory:
-      factory: test.NewService
-      arguments: [ "@Struct" ]
-    Struct:
-      struct: test.Service
-      fields:
-        - Service: "@Factory"
+		"factory1_that_uses_factory2_that_uses_factory1": testCase{
+			Err: "There is a circular reference for @Service\\w -> @Service\\w -> @Service\\w",
+			Container: def.Container{
+				Services: map[string]def.Service{
+					"Service1": def.NewFactoryService("test.NewService", def.NewServiceValue("Service2")),
+					"Service2": def.NewFactoryService("test.NewService", def.NewServiceValue("Service1")),
+				},
+			},
+		},
+		"deep_circular": testCase{
+			Err: "There is a circular reference for @\\w* -> @\\w* -> @\\w* -> @\\w*",
+			Container: def.Container{
+				Services: map[string]def.Service{
+					"Factory":   def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")),
+					"Struct2":   def.NewInitializationService("test.Service", nil),
+					"Factory2":  def.NewFactoryService("test.NewService"),
+					"MiddleOne": def.NewFactoryService("test.NewService", def.NewServiceValue("Factory")),
+					"Struct": def.NewInitializationService("test.Service", map[string]def.Value{
+						"Services": def.NewSliceValue([]def.Value{
+							def.NewServiceValue("Struct2"),
+							def.NewServiceValue("Factory2"),
+							def.NewServiceValue("MiddleOne"),
+						}),
+					}),
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			_, err := generate.Generate(test.Container)
-
-			if len(test.Err) == 0 && err == nil {
-				return
-			}
-
-			if len(test.Err) == 0 && err != nil {
-				t.Errorf("expected no error, got '%s' error", err.Error())
-				return
-			}
-
-			if err == nil {
-				t.Errorf("expected error '%s', got no error", test.Err)
-				return
-			}
-
-			if test.Err != err.Error() && regexp.MustCompile(test.Err).MatchString(err.Error()) {
-				t.Errorf("expected error '%s', got '%s'", test.Err, err.Error())
-				return
-			}
+			require.Regexp(t, test.Err, err)
 		})
 	}
 }
