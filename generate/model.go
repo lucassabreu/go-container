@@ -12,27 +12,35 @@ type ContainerGenerator struct {
 	ContainerDocs string
 
 	importedPackageNames []string
-	packages             []packageGen
+	packages             []Package
 
-	Services map[string]serviceGen
+	Services map[string]ServiceGenerator
 }
 
-type packageGen struct {
-	Name     string
-	FullName string
-	Alias    *string
-	Package  scan.Package
+// Package represents a package to be imported by the container
+type Package struct {
+	name     string
+	fullName string
+	alias    *string
+	scanned  scan.Package
 }
 
-func (pDef packageGen) UniqueName() string {
-	if pDef.Alias != nil {
-		return *pDef.Alias
+// UniqueName package name or alias (if informed), should be unique
+func (p Package) UniqueName() string {
+	if p.alias != nil {
+		return *p.alias
 	}
 
-	return pDef.Name
+	return p.name
 }
 
-func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageGen {
+// ScannedPackage returns the scan.Package which it is based
+func (p Package) ScannedPackage() scan.Package {
+	return p.scanned
+}
+
+// GetPackageByUniqueName returns the package by its "import" name
+func (cg ContainerGenerator) GetPackageByUniqueName(name string) *Package {
 	for _, pkg := range cg.packages {
 		if pkg.UniqueName() == name {
 			return &pkg
@@ -41,7 +49,8 @@ func (cg ContainerGenerator) getPackageByUniqueName(name string) *packageGen {
 	return nil
 }
 
-type serviceGen interface {
+// ServiceGenerator creates a new func to generate a service
+type ServiceGenerator interface {
 	Name() string
 	ResultType() types.Type
 	Generate(ContainerGenerator) string

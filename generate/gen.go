@@ -55,11 +55,11 @@ func (cg ContainerGenerator) registerPackage(pkgPath string, alias *string) erro
 		return fmt.Errorf("Aready exists a package with the imported name \"%s\"", uniqueName)
 	}
 
-	cg.packages = append(cg.packages, packageGen{
-		Alias:    alias,
-		FullName: scannedPackage.ImportPath,
-		Name:     scannedPackage.Name,
-		Package:  scannedPackage,
+	cg.packages = append(cg.packages, Package{
+		alias:    alias,
+		fullName: scannedPackage.ImportPath,
+		name:     scannedPackage.Name,
+		scanned:  scannedPackage,
 	})
 	return nil
 }
@@ -74,14 +74,14 @@ func breakIntoPackageAndDef(ref string) (pkg, def string) {
 func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, args []def.Value) error {
 	pkg, factoryFunc := breakIntoPackageAndDef(factoryFunc)
 
-	pkgGen := cg.getPackageByUniqueName(pkg)
+	pkgGen := cg.GetPackageByUniqueName(pkg)
 	if pkgGen == nil {
 		return fmt.Errorf("There is no imported package with name \"%s\"", pkg)
 	}
 
-	fnc, ok := pkgGen.Package.Funcs[factoryFunc]
+	fnc, ok := pkgGen.ScannedPackage().Funcs[factoryFunc]
 	if !ok {
-		return fmt.Errorf("There is no func named \"%s\" at the package %s", factoryFunc, pkgGen.Package.ImportPath)
+		return fmt.Errorf("There is no func named \"%s\" at the package %s", factoryFunc, pkgGen.ScannedPackage().ImportPath)
 	}
 
 	if !fnc.Variadic && len(args) != len(fnc.Params) {
@@ -128,14 +128,14 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 func (cg ContainerGenerator) registerServiceByInitialization(name, structName string, fields map[string]def.Value) error {
 	pkg, structName := breakIntoPackageAndDef(structName)
 
-	pkgGen := cg.getPackageByUniqueName(pkg)
+	pkgGen := cg.GetPackageByUniqueName(pkg)
 	if pkgGen == nil {
 		return fmt.Errorf("There is no imported package with name \"%s\"", pkg)
 	}
 
-	structType, ok := pkgGen.Package.Structs[structName]
+	structType, ok := pkgGen.ScannedPackage().Structs[structName]
 	if !ok {
-		return fmt.Errorf("There is no struct named \"%s\" at the package %s", structName, pkgGen.Package.ImportPath)
+		return fmt.Errorf("There is no struct named \"%s\" at the package %s", structName, pkgGen.ScannedPackage().ImportPath)
 	}
 
 	initValues := make(map[string]valueGen, len(fields))
@@ -166,8 +166,7 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 }
 
 func (cg ContainerGenerator) createValueGen(t types.Type, arg def.Value) (v valueGen, err error) {
-	switch arg.ValueType() {
-	case def.ValueSingle:
+	if arg.ValueType() == def.ValueSingle {
 		v = constValueGen{
 			value: arg.GetSingleValue(),
 			typ:   t,
