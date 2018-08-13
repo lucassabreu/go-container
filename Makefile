@@ -1,5 +1,5 @@
 .PHONY: all
-all: help
+all: hooks help
 
 # set default as dev if not set
 export commit ?= HEAD
@@ -7,17 +7,23 @@ export testWatchPort=8091
 
 .PHONY: build
 
-update-dev-deps: ## update dev tools
+PRE_COMMIT := $(shell command -v pre-commit 2> /dev/null)
+
+hooks: ## install git hooks
+ifndef PRE_COMMIT
+	sudo pip install pre-commit
+endif
+	go get -v github.com/golang/lint
+	go get -v github.com/go-critic/go-critic/...
+	pre-commit install
+
+update-dev-deps: hooks ## update dev tools
 	go get -u -v github.com/haya14busa/goverage
 	go get -u -v golang.org/x/lint/golint
 	go get -u -v github.com/schrej/godacov
 
-tests-watch:
-	go get github.com/smartystreets/goconvey
-	goconvey -port $(testWatchPort)
-
-install: ## install project dependences
-	go get -v ./...
+install: hooks ## install project dependences
+	go get -t -v ./...
 
 lint: ## run got lint
 	go get golang.org/x/lint/golint
