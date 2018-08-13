@@ -22,8 +22,10 @@ update-dev-deps: hooks ## update dev tools
 	go get -u -v golang.org/x/lint/golint
 	go get -u -v github.com/schrej/godacov
 
-install: hooks ## install project dependences
+install-ci-deps: ## install dependences for CI
 	go get -t -v ./...
+
+install: hooks install-ci-deps ## install project dependences
 
 lint: ## run got lint
 	go get golang.org/x/lint/golint
