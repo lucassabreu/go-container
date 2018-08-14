@@ -37,7 +37,7 @@ func TestServiceReferences(t *testing.T) {
 			},
 		},
 		"factory_uses_struct_that_uses_factory": testCase{
-			Err: "There is a circular reference for @Factory -> @Struct -> @Factory",
+			Err: "There is a circular reference for @(Factory|Struct) -> @(Struct|Factory) -> @(Factory|Struct)",
 			Container: def.Container{
 				Services: map[string]def.Service{
 					"Factory": def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")),
