@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 )
 
 // Package represents a Go package definition
@@ -154,7 +154,7 @@ func tupleToTypes(t *types.Tuple) []types.Type {
 }
 
 func (p Package) String() string {
-	b := strings.Builder{}
+	b := bytes.Buffer{}
 
 	b.WriteString("Package: ")
 	b.WriteString(p.Name)
