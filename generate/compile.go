@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"text/template"
 )
 
@@ -11,6 +12,13 @@ var tpl *template.Template
 
 func init() {
 	tpl = template.New("container")
+
+	tpl.Funcs(template.FuncMap{
+		"toVarName": func(name string) string {
+			return strings.ToLower(name[0:0]) + name[1:]
+		},
+	})
+
 	var err error
 	tpl, err = tpl.Parse(`
 package {{.PackageName}}
@@ -25,9 +33,10 @@ import (
 type {{.ContainerName}} struct {
 	parametersBag {{.GoContainerPackageName}}.ParametersBag
 
-	{{ range .Services }}
-
-	{{ end }}
+	{{ range $name := .ServiceNames -}}
+	{{ $service := index .Services $name }}
+	{{ toVarName $name }} {{ $service.Package.UniqueName }}.{{ $service.Type.String }}
+	{{- end }}
 }
 `)
 	if err != nil {
@@ -75,7 +84,9 @@ func (cg ContainerGenerator) Compile() error {
 		"GoCotainerPackageAlias": goContainerPackageAlias,
 		"Packages":               cg.packages,
 		"Services":               cg.services,
+		"ServiceNames":           cg.SortedServiceNames(),
 	})
+
 	if err != nil {
 		return err
 	}

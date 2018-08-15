@@ -10,10 +10,12 @@ import (
 type Service interface {
 	Name() string
 	ResultType() types.Type
+	Package() *Package
 	Generate(ContainerGenerator) string
 }
 
 type basicServiceGen struct {
+	ServicePackage    *Package
 	ServiceName       string
 	ServiceResultType types.Type
 }
@@ -24,6 +26,10 @@ func (b basicServiceGen) Name() string {
 
 func (b basicServiceGen) ResultType() types.Type {
 	return b.ServiceResultType
+}
+
+func (b basicServiceGen) Package() *Package {
+	return b.ServicePackage
 }
 
 type serviceByFactoryGen struct {

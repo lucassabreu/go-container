@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/types"
+	"log"
+	"sort"
 	"strings"
 
 	"github.com/lucassabreu/go-container/def"
@@ -33,38 +35,56 @@ type ContainerGenerator struct {
 }
 
 // NewContainerGenerator creates a ContainerGenerator for the the def.Container
-func NewContainerGenerator(cDef def.Container) (cg ContainerGenerator, err error) {
-	if err = CheckCircularReference(cDef); err != nil {
-		return
+func NewContainerGenerator(cDef def.Container) (ContainerGenerator, error) {
+	if err := CheckCircularReference(cDef); err != nil {
+		return ContainerGenerator{}, err
 	}
 
-	cg.ContainerName = cDef.Name
-	cg.ContainerDocs = cDef.Docs
+	cg := &ContainerGenerator{
+		ContainerName: cDef.Name,
+		ContainerDocs: cDef.Docs,
+	}
 
 	for _, pkg := range cDef.Packages {
-		err := cg.RegisterPackage(pkg.Package, pkg.Alias)
-		if err != nil {
-			return ContainerGenerator{}, err
+		if err := cg.RegisterPackage(pkg.Package, pkg.Alias); err != nil {
+			return ContainerGenerator{}, nil
 		}
 	}
 
+	log.Printf("container: %#v", cg)
+
 	for name, serv := range cDef.Services {
 		if serv.IsByFactory() {
-			if err = cg.registerServiceByFactory(name, *serv.Factory, serv.Arguments); err != nil {
+			if err := cg.registerServiceByFactory(name, *serv.Factory, serv.Arguments); err != nil {
 				return ContainerGenerator{}, err
 			}
 		}
 
-		if err = cg.registerServiceByInitialization(name, *serv.Struct, serv.Fields); err != nil {
+		if err := cg.registerServiceByInitialization(name, *serv.Struct, serv.Fields); err != nil {
 			return ContainerGenerator{}, err
 		}
 	}
 
-	return
+	return *cg, nil
+}
+
+func (cg ContainerGenerator) SortedServiceNames() []string {
+	list := make([]string, len(cg.services))
+
+	i := 0
+	for name := range cg.services {
+		list[i] = name
+		i++
+	}
+
+	sort.Strings(list)
+	return list
 }
 
 // GetPackageByUniqueName returns the package by its "import" name
 func (cg ContainerGenerator) GetPackageByUniqueName(name string) *Package {
+	log.Printf("%#v", cg.packages)
+
 	for _, pkg := range cg.packages {
 		if pkg.UniqueName() == name {
 			return &pkg
@@ -100,6 +120,9 @@ func (cg ContainerGenerator) RegisterPackage(pkgPath string, alias *string) erro
 		name:     scannedPackage.Name,
 		scanned:  scannedPackage,
 	})
+
+	log.Printf("counting... %#v", len(cg.packages))
+
 	return nil
 }
 
@@ -151,6 +174,7 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 
 	cg.services[name] = serviceByFactoryGen{
 		basicServiceGen: basicServiceGen{
+			ServicePackage:    pkgGen,
 			ServiceName:       name,
 			ServiceResultType: fnc.Results[0],
 		},
@@ -194,6 +218,7 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 
 	cg.services[name] = serviceByInitializationGen{
 		basicServiceGen: basicServiceGen{
+			ServicePackage:    pkgGen,
 			ServiceName:       name,
 			ServiceResultType: structType.Type,
 		},

@@ -1,4 +1,4 @@
-package example
+package test
 
 // Doer do
 type Doer interface {
