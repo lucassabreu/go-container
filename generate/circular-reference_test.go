@@ -60,10 +60,12 @@ func TestServiceReferences(t *testing.T) {
 			Err: "There is a circular reference for @\\w* -> @\\w* -> @\\w* -> @\\w*",
 			Container: def.Container{
 				Services: map[string]def.Service{
-					"Factory":   def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")),
-					"Struct2":   def.NewInitializationService("test.Service", nil),
-					"Factory2":  def.NewFactoryService("test.NewService"),
-					"MiddleOne": def.NewFactoryService("test.NewService", def.NewServiceValue("Factory")),
+					"Factory":  def.NewFactoryService("test.NewService", def.NewServiceValue("Struct")),
+					"Struct2":  def.NewInitializationService("test.Service", nil),
+					"Factory2": def.NewFactoryService("test.NewService"),
+					"MiddleOne": def.NewFactoryService("test.NewService", def.NewStructValue(map[string]def.Value{
+						"field": def.NewServiceValue("Factory"),
+					})),
 					"Struct": def.NewInitializationService("test.Service", map[string]def.Value{
 						"Services": def.NewSliceValue([]def.Value{
 							def.NewServiceValue("Struct2"),
@@ -78,7 +80,7 @@ func TestServiceReferences(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			_, err := generate.Generate(test.Container)
+			err := generate.CheckCircularReference(test.Container)
 			require.Regexp(t, test.Err, err)
 		})
 	}

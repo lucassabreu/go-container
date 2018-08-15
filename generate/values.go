@@ -5,12 +5,18 @@ import (
 	"strconv"
 )
 
-type constValueGen struct {
+// Value will generate a value definition or use
+type Value interface {
+	Generate(ContainerGenerator) string
+	NeedsPointer() bool
+}
+
+type constValue struct {
 	value string
 	typ   types.Type
 }
 
-func (c constValueGen) Generate(ContainerGenerator) string {
+func (c constValue) Generate(ContainerGenerator) string {
 	var typ types.Type
 	typ, ok := c.typ.(*types.Pointer)
 	if !ok {
@@ -26,19 +32,19 @@ func (c constValueGen) Generate(ContainerGenerator) string {
 	return c.value
 }
 
-func (c constValueGen) NeedsPointer() bool {
+func (c constValue) NeedsPointer() bool {
 	_, ok := c.typ.(*types.Pointer)
 	return ok
 }
 
-type slideValueGen struct {
-	values []valueGen
+type slideValue struct {
+	values []Value
 }
 
-func (slideValueGen) Generate(ContainerGenerator) string {
+func (slideValue) Generate(ContainerGenerator) string {
 	panic("not implemented")
 }
 
-func (slideValueGen) NeedsPointer() bool {
+func (slideValue) NeedsPointer() bool {
 	panic("not implemented")
 }

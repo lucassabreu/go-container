@@ -9,9 +9,20 @@ import (
 	"github.com/lucassabreu/go-container/scan"
 )
 
-// Generate creates a ContainerGenerator for the the def.Container, may fail
-func Generate(cDef def.Container) (cg ContainerGenerator, err error) {
-	if err = hasCircularReference(cDef); err != nil {
+// ContainerGenerator represents a container to be generated
+type ContainerGenerator struct {
+	ContainerName string
+	ContainerDocs string
+
+	importedPackageNames []string
+	packages             []Package
+
+	services map[string]Service
+}
+
+// NewContainerGenerator creates a ContainerGenerator for the the def.Container
+func NewContainerGenerator(cDef def.Container) (cg ContainerGenerator, err error) {
+	if err = CheckCircularReference(cDef); err != nil {
 		return
 	}
 
@@ -19,7 +30,7 @@ func Generate(cDef def.Container) (cg ContainerGenerator, err error) {
 	cg.ContainerDocs = cDef.Docs
 
 	for _, pkg := range cDef.Packages {
-		err := cg.registerPackage(pkg.Package, pkg.Alias)
+		err := cg.RegisterPackage(pkg.Package, pkg.Alias)
 		if err != nil {
 			return ContainerGenerator{}, err
 		}
@@ -40,7 +51,23 @@ func Generate(cDef def.Container) (cg ContainerGenerator, err error) {
 	return
 }
 
-func (cg ContainerGenerator) registerPackage(pkgPath string, alias *string) error {
+// GetPackageByUniqueName returns the package by its "import" name
+func (cg ContainerGenerator) GetPackageByUniqueName(name string) *Package {
+	for _, pkg := range cg.packages {
+		if pkg.UniqueName() == name {
+			return &pkg
+		}
+	}
+	return nil
+}
+
+// Services returns the registered services on the container
+func (cg ContainerGenerator) Services() map[string]Service {
+	return cg.services
+}
+
+// RegisterPackage add the package into the ContainerGenerator
+func (cg ContainerGenerator) RegisterPackage(pkgPath string, alias *string) error {
 	scannedPackage, err := scan.ImportPackage(pkgPath)
 	if err != nil {
 		return err
@@ -101,16 +128,16 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 		paramTypes = append(paramTypes, fnc.Params[:1][0])
 	}
 
-	values := make([]valueGen, len(paramTypes))
+	values := make([]Value, len(paramTypes))
 	for i, t := range paramTypes {
-		v, err := cg.createValueGen(t, args[i])
+		v, err := cg.createValue(t, args[i])
 		if err != nil {
 			return err
 		}
 		values[i] = v
 	}
 
-	cg.Services[name] = serviceByFactoryGen{
+	cg.services[name] = serviceByFactoryGen{
 		basicServiceGen: basicServiceGen{
 			ServiceName:       name,
 			ServiceResultType: fnc.Results[0],
@@ -119,7 +146,7 @@ func (cg ContainerGenerator) registerServiceByFactory(name, factoryFunc string, 
 	}
 
 	if len(fnc.Results) == 2 {
-		cg.Services[name] = serviceByFailableFactoryGen{cg.Services[name].(serviceByFactoryGen)}
+		cg.services[name] = serviceByFailableFactoryGen{cg.services[name].(serviceByFactoryGen)}
 	}
 
 	return nil
@@ -138,14 +165,14 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 		return fmt.Errorf("There is no struct named \"%s\" at the package %s", structName, pkgGen.ScannedPackage().ImportPath)
 	}
 
-	initValues := make(map[string]valueGen, len(fields))
+	initValues := make(map[string]Value, len(fields))
 	for fieldName, defValue := range fields {
 		fieldType, ok := structType.Fields[fieldName]
 		if !ok {
 			return fmt.Errorf("There is no field \"%s\" at the struct %s.%s (service %s)", fieldName, pkg, structName, name)
 		}
 
-		v, err := cg.createValueGen(fieldType, defValue)
+		v, err := cg.createValue(fieldType, defValue)
 		if err != nil {
 			return err
 		}
@@ -153,7 +180,7 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 		initValues[fieldName] = v
 	}
 
-	cg.Services[name] = serviceByInitializationGen{
+	cg.services[name] = serviceByInitializationGen{
 		basicServiceGen: basicServiceGen{
 			ServiceName:       name,
 			ServiceResultType: structType.Type,
@@ -165,9 +192,9 @@ func (cg ContainerGenerator) registerServiceByInitialization(name, structName st
 	return nil
 }
 
-func (cg ContainerGenerator) createValueGen(t types.Type, arg def.Value) (v valueGen, err error) {
+func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, err error) {
 	if arg.ValueType() == def.ValueSingle {
-		v = constValueGen{
+		v = constValue{
 			value: arg.GetSingleValue(),
 			typ:   t,
 		}

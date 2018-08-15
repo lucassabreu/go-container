@@ -7,7 +7,8 @@ import (
 	"github.com/lucassabreu/go-container/def"
 )
 
-func hasCircularReference(cDef def.Container) error {
+// CheckCircularReference confirms if there is circular reference in the definition
+func CheckCircularReference(cDef def.Container) error {
 	for name := range cDef.Services {
 		if err := lookForItself(name, cDef); err != nil {
 			return err
