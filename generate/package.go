@@ -19,6 +19,11 @@ func (p Package) UniqueName() string {
 	return p.name
 }
 
+// Path is the import path of the package
+func (p Package) Path() string {
+	return p.fullName
+}
+
 // ScannedPackage returns the scan.Package which it is based
 func (p Package) ScannedPackage() scan.Package {
 	return p.scanned

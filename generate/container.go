@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"bytes"
 	"fmt"
 	"go/types"
 	"strings"
@@ -9,10 +10,21 @@ import (
 	"github.com/lucassabreu/go-container/scan"
 )
 
+const (
+	// DefaultContainerName will be used if not container name was informed
+	DefaultContainerName = "Container"
+	// DefaultContainerDocs will be used if not container docs was informed
+	DefaultContainerDocs = "Container is a container"
+	// DefaultContainerPackage will be used if not container package was informed
+	DefaultContainerPackage = "container"
+)
+
 // ContainerGenerator represents a container to be generated
 type ContainerGenerator struct {
-	ContainerName string
-	ContainerDocs string
+	ContainerName    string
+	ContainerPackage string
+	ContainerDocs    string
+	buffer           bytes.Buffer
 
 	importedPackageNames []string
 	packages             []Package
