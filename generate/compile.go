@@ -69,11 +69,12 @@ func (cg ContainerGenerator) Compile() error {
 		cg.ContainerName = (DefaultContainerPackage)
 	}
 
-	if len(cg.ContainerDocs) == 0 {
-		cg.ContainerDocs = DefaultContainerDocs
-	}
 	if len(cg.ContainerName) == 0 {
 		cg.ContainerName = DefaultContainerName
+	}
+
+	if len(cg.ContainerDocs) == 0 {
+		cg.ContainerDocs = fmt.Sprintf(DefaultContainerDocs, cg.ContainerName)
 	}
 
 	b := bytes.Buffer{}

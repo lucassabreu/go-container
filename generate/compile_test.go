@@ -12,12 +12,14 @@ import (
 func TestCompile(t *testing.T) {
 
 	c := def.Container{
+		Name: "SpecialContainer",
+		Docs: "SpecialContainer is a container, but special",
 		Packages: []def.Package{
 			def.NewPackage("github.com/lucassabreu/go-container/examples/test"),
 			def.NewPackageWithAlias("github.com/lucassabreu/go-container/examples/basicapp", "ex"),
 		},
 		Services: map[string]def.Service{
-			"IDo":      def.NewFactoryService("test.IDo"),
+			"IDo":      def.NewFactoryService("test.NewIDo"),
 			"JustDoIt": def.NewFactoryService("test.NewJustDo", def.NewSingleValue("it")),
 			"JustDo": def.NewInitializationService(
 				"test.JustDo",

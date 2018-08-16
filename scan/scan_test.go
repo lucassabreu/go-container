@@ -15,7 +15,7 @@ func TestImportPackage(t *testing.T) {
 		t.Errorf("Should not fail, error received: %v", err)
 	}
 
-	require.Equal(t, pkg.Name, "example")
+	require.Equal(t, pkg.Name, "test")
 	require.Equal(t, pkg.ImportPath, pkgName)
 
 	require.Equal(t, 5, len(pkg.Funcs))
@@ -56,7 +56,7 @@ func TestImportPackage(t *testing.T) {
 
 	require.Equal(
 		t,
-		`Package: example (github.com/lucassabreu/go-container/examples/test)
+		`Package: test (github.com/lucassabreu/go-container/examples/test)
 	Funcs:
 		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.doALot)
 		NewIDo() (github.com/lucassabreu/go-container/examples/test.Doer)

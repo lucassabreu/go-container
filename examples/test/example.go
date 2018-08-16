@@ -72,3 +72,9 @@ func (a doALot) Do() {
 		doer.Do()
 	}
 }
+
+func NewToDo (toDos map[string]Doer) &ToDo {
+	return ToDo {
+		toDo: toDos,
+	}
+}
