@@ -31,13 +31,13 @@ type ContainerGenerator struct {
 
 	services map[string]Service
 
-	buffer bytes.Buffer
+	buffer *bytes.Buffer
 }
 
 // NewContainerGenerator creates a ContainerGenerator for the the def.Container
-func NewContainerGenerator(cDef def.Container) (ContainerGenerator, error) {
+func NewContainerGenerator(cDef def.Container) (*ContainerGenerator, error) {
 	if err := CheckCircularReference(cDef); err != nil {
-		return ContainerGenerator{}, err
+		return nil, err
 	}
 
 	cg := &ContainerGenerator{
@@ -47,7 +47,7 @@ func NewContainerGenerator(cDef def.Container) (ContainerGenerator, error) {
 
 	for _, pkg := range cDef.Packages {
 		if err := cg.RegisterPackage(pkg.Package, pkg.Alias); err != nil {
-			return ContainerGenerator{}, nil
+			return nil, err
 		}
 	}
 
@@ -55,16 +55,17 @@ func NewContainerGenerator(cDef def.Container) (ContainerGenerator, error) {
 	for name, serv := range cDef.Services {
 		if serv.IsByFactory() {
 			if err := cg.registerServiceByFactory(name, *serv.Factory, serv.Arguments); err != nil {
-				return ContainerGenerator{}, err
+				return nil, err
 			}
+			continue
 		}
 
 		if err := cg.registerServiceByInitialization(name, *serv.Struct, serv.Fields); err != nil {
-			return ContainerGenerator{}, err
+			return nil, err
 		}
 	}
 
-	return *cg, nil
+	return cg, nil
 }
 
 func (cg ContainerGenerator) SortedServiceNames() []string {

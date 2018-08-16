@@ -36,7 +36,7 @@ func TestCompile(t *testing.T) {
 				}),
 			),
 			"ToDo": def.NewFactoryService(
-				"ex.NewToDo",
+				"test.NewToDo",
 				def.NewStructValue(map[string]def.Value{
 					"first":  def.NewSingleValue("wake up"),
 					"second": def.NewSingleValue("drink coffe"),
@@ -49,5 +49,11 @@ func TestCompile(t *testing.T) {
 	cg, err := generate.NewContainerGenerator(c)
 
 	require.Nil(t, err)
-	log.Printf(cg.String())
+
+	err = cg.Compile()
+	if err != nil {
+		log.Printf(err.Error())
+		require.Nil(t, err)
+	}
+	require.Equal(t, "<>", cg.String())
 }

@@ -15,28 +15,27 @@ func init() {
 
 	tpl.Funcs(template.FuncMap{
 		"toVarName": func(name string) string {
-			return strings.ToLower(name[0:0]) + name[1:]
+			return strings.ToLower(name[0:1]) + name[1:]
 		},
 	})
 
 	var err error
 	tpl, err = tpl.Parse(`
-package {{.PackageName}}
+package {{.ContainerPackage}}
 
 import (
 	{{ range .Packages -}}
 	{{ .UniqueName }} {{ .Path }}
-	{{- end }}
+	{{ end -}}
 )
 
 // {{.ContainerDocs}}
 type {{.ContainerName}} struct {
-	parametersBag {{.GoContainerPackageName}}.ParametersBag
-
-	{{ range $name := .ServiceNames -}}
-	{{ $service := index .Services $name }}
-	{{ toVarName $name }} {{ $service.Package.UniqueName }}.{{ $service.Type.String }}
-	{{- end }}
+	parametersBag {{.GoContainerPackageAlias}}.ParametersBag
+{{ range $name := .ServiceNames -}}
+	{{ $service := index $.Services $name }}
+	{{ toVarName $name }} {{ $service.Package.UniqueName }}.{{ $service.ResultType }}
+{{- end }}
 }
 `)
 	if err != nil {
@@ -46,11 +45,11 @@ type {{.ContainerName}} struct {
 
 // IsCompiled indicates if the container was compiled
 func (cg ContainerGenerator) IsCompiled() bool {
-	return cg.buffer.Len() > 0
+	return cg.buffer != nil
 }
 
 // Compile generates the container contentes and closes it for edition
-func (cg ContainerGenerator) Compile() error {
+func (cg *ContainerGenerator) Compile() error {
 	if cg.IsCompiled() {
 		return nil
 	}
@@ -65,8 +64,8 @@ func (cg ContainerGenerator) Compile() error {
 	}
 	cg.RegisterPackage("github.com/lucassabreu/go-container", &goContainerPackageAlias)
 
-	if len(cg.ContainerName) == 0 {
-		cg.ContainerName = (DefaultContainerPackage)
+	if len(cg.ContainerPackage) == 0 {
+		cg.ContainerPackage = (DefaultContainerPackage)
 	}
 
 	if len(cg.ContainerName) == 0 {
@@ -77,15 +76,15 @@ func (cg ContainerGenerator) Compile() error {
 		cg.ContainerDocs = fmt.Sprintf(DefaultContainerDocs, cg.ContainerName)
 	}
 
-	b := bytes.Buffer{}
-	err := tpl.Execute(&b, map[string]interface{}{
-		"ContainerPackage":       cg.ContainerPackage,
-		"ContainerDocs":          cg.ContainerDocs,
-		"ContainerName":          cg.ContainerName,
-		"GoCotainerPackageAlias": goContainerPackageAlias,
-		"Packages":               cg.packages,
-		"Services":               cg.services,
-		"ServiceNames":           cg.SortedServiceNames(),
+	b := &bytes.Buffer{}
+	err := tpl.Execute(b, map[string]interface{}{
+		"ContainerPackage":        cg.ContainerPackage,
+		"ContainerDocs":           cg.ContainerDocs,
+		"ContainerName":           cg.ContainerName,
+		"GoContainerPackageAlias": goContainerPackageAlias,
+		"Packages":                cg.packages,
+		"Services":                cg.services,
+		"ServiceNames":            cg.SortedServiceNames(),
 	})
 
 	if err != nil {

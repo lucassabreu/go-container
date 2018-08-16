@@ -1,5 +1,7 @@
 package test
 
+import "fmt"
+
 // Doer do
 type Doer interface {
 	Do()
@@ -73,8 +75,19 @@ func (a doALot) Do() {
 	}
 }
 
-func NewToDo (toDos map[string]Doer) &ToDo {
-	return ToDo {
+type ToDo struct {
+	toDo map[string]Doer
+}
+
+func NewToDo(toDos map[string]Doer) *ToDo {
+	return &ToDo{
 		toDo: toDos,
+	}
+}
+
+func (t *ToDo) Do() {
+	for name, doer := range t.toDo {
+		fmt.Printf("%s:\n", name)
+		doer.Do()
 	}
 }

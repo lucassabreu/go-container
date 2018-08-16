@@ -18,7 +18,7 @@ func TestImportPackage(t *testing.T) {
 	require.Equal(t, pkg.Name, "test")
 	require.Equal(t, pkg.ImportPath, pkgName)
 
-	require.Equal(t, 5, len(pkg.Funcs))
+	require.Equal(t, 6, len(pkg.Funcs))
 
 	if _, ok := pkg.Funcs["NewIDo"]; !ok {
 		t.Fatalf("Should have found 'NewIDo' exported func")
@@ -28,7 +28,7 @@ func TestImportPackage(t *testing.T) {
 		t.Fatalf("Should have found 'NewTheyDo' exported func")
 	}
 
-	require.Equal(t, 3, len(pkg.Structs))
+	require.Equal(t, 4, len(pkg.Structs))
 
 	if _, ok := pkg.Structs["TheyDo"]; !ok {
 		t.Fatalf("Should have found 'TheyDo' exported struct")
@@ -63,6 +63,7 @@ func TestImportPackage(t *testing.T) {
 		NewJustDo(string) (github.com/lucassabreu/go-container/examples/test.JustDo)
 		NewSomethingDo(github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.SomethingDo)
 		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/examples/test.TheyDo)
+		NewToDo(map[string]github.com/lucassabreu/go-container/examples/test.Doer) (*github.com/lucassabreu/go-container/examples/test.ToDo)
 
 	Structs:
 		JustDo{
@@ -73,6 +74,8 @@ func TestImportPackage(t *testing.T) {
 		}
 		TheyDo{
 			ToDo func(string),
+		}
+		ToDo{
 		}
 `,
 		pkg.String(),
