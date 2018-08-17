@@ -34,7 +34,7 @@ type Func struct {
 type Struct struct {
 	Name   string
 	Fields map[string]types.Type
-	Type   *types.Struct
+	Type   types.Type
 }
 
 // GetFuncsNames returns name of the funcs of the package
@@ -125,7 +125,7 @@ func ImportPackage(pkgName string) (Package, error) {
 				structDef := Struct{
 					Name:   obj.Name(),
 					Fields: make(map[string]types.Type),
-					Type:   typ,
+					Type:   obj.Type(),
 				}
 
 				for i := 0; i < typ.NumFields(); i++ {

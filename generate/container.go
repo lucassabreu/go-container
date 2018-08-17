@@ -22,9 +22,10 @@ const (
 
 // ContainerGenerator represents a container to be generated
 type ContainerGenerator struct {
-	ContainerName    string
-	ContainerPackage string
-	ContainerDocs    string
+	ContainerName           string
+	ContainerPackage        string
+	ContainerDocs           string
+	GoContainerPackageAlias string
 
 	importedPackageNames []string
 	packages             []Package
@@ -33,30 +34,6 @@ type ContainerGenerator struct {
 	types    map[types.Type]Type
 
 	buffer *bytes.Buffer
-}
-
-// Type represents a type with its Package (if it have one)
-type Type struct {
-	typ types.Type
-	pkg *Package
-}
-
-func (t Type) String() string {
-	return t.pkg.UniqueName() + ".Something"
-}
-
-// RegisterType will create a new Type to be used in the generator,
-// if the types.Type was aready registered, than the previews one
-// will be returned
-func (cg ContainerGenerator) RegisterType(t types.Type) Type {
-	if typ, ok := cg.types[t]; ok {
-		return typ
-	}
-
-	return Type{
-		typ: t,
-		pkg: &cg.packages[0],
-	}
 }
 
 // NewContainerGenerator creates a ContainerGenerator for the the def.Container
@@ -108,6 +85,11 @@ func (cg ContainerGenerator) SortedServiceNames() []string {
 	return list
 }
 
+// Services returns the registered services on the container
+func (cg ContainerGenerator) Services() map[string]Service {
+	return cg.services
+}
+
 // GetPackageByUniqueName returns the package by its "import" name
 func (cg ContainerGenerator) GetPackageByUniqueName(name string) *Package {
 	for _, pkg := range cg.packages {
@@ -118,9 +100,14 @@ func (cg ContainerGenerator) GetPackageByUniqueName(name string) *Package {
 	return nil
 }
 
-// Services returns the registered services on the container
-func (cg ContainerGenerator) Services() map[string]Service {
-	return cg.services
+// GetPackageByPath returns a package from the Generator by its path
+func (cg ContainerGenerator) GetPackageByPath(path string) *Package {
+	for _, pkg := range cg.packages {
+		if pkg.Path() == path {
+			return &pkg
+		}
+	}
+	return nil
 }
 
 // RegisterPackage add the package into the ContainerGenerator
@@ -149,10 +136,20 @@ func (cg *ContainerGenerator) RegisterPackage(pkgPath string, alias *string) err
 	return nil
 }
 
+// Packages returns all packages
+func (cg *ContainerGenerator) Packages() []Package {
+	return cg.packages
+}
+
 func breakIntoPackageAndDef(ref string) (pkg, def string) {
 	pieces := strings.Split(ref, ".")
-	pkg = pieces[0]
-	def = pieces[1]
+	if len(pieces) == 1 {
+		def = pieces[0]
+		return
+	}
+
+	pkg = strings.Join(pieces[0:len(pieces)-1], ".")
+	def = pieces[len(pieces)-1]
 	return
 }
 

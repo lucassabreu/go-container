@@ -37,26 +37,32 @@ func NewTheyDo(toDo func(string)) TheyDo {
 	}
 }
 
+// JustDo is a example
 type JustDo struct {
 	That string
 }
 
+// Do does
 func (d JustDo) Do() {
 	println(d.That)
 }
 
+// NewJustDo receives a scalar
 func NewJustDo(that string) JustDo {
 	return JustDo{That: that}
 }
 
+// SomethingDo calls other Doer
 type SomethingDo struct {
 	Something Doer
 }
 
+// NewSomethingDo dependence
 func NewSomethingDo(do Doer) SomethingDo {
 	return SomethingDo{Something: do}
 }
 
+// Do does
 func (s SomethingDo) Do() {
 	s.Something.Do()
 }
@@ -65,8 +71,11 @@ type doALot struct {
 	things []Doer
 }
 
-func NewDoALot(doers []Doer) doALot {
-	return doALot{things: doers}
+// NewDoALot returns a interface pointer
+func NewDoALot(doers []Doer) *Doer {
+	var doer Doer
+	doer = doALot{things: doers}
+	return &doer
 }
 
 func (a doALot) Do() {
@@ -75,16 +84,19 @@ func (a doALot) Do() {
 	}
 }
 
+// ToDo has a map
 type ToDo struct {
 	toDo map[string]Doer
 }
 
+// NewToDo recieves a map
 func NewToDo(toDos map[string]Doer) *ToDo {
 	return &ToDo{
 		toDo: toDos,
 	}
 }
 
+// Do does
 func (t *ToDo) Do() {
 	for name, doer := range t.toDo {
 		fmt.Printf("%s:\n", name)

@@ -33,9 +33,9 @@ import (
 // {{.ContainerDocs}}
 type {{.ContainerName}} struct {
 	parametersBag {{.GoContainerPackageAlias}}.ParametersBag
-	{{ range $name := .ServiceNames -}}
+	{{ range $name := .SortedServiceNames -}}
 		{{ $service := index $.Services $name }}
-		{{ toVarName $name }} {{ $service.ResultType.String }}
+		{{ toVarName $name }} {{ $service.ResultType.AsPointer }}
 	{{- end }}
 }
 
@@ -60,11 +60,11 @@ func (cg *ContainerGenerator) Compile() error {
 		return errors.New("no package was registered")
 	}
 
-	goContainerPackageAlias := "container"
-	for i := 0; contains(cg.importedPackageNames, goContainerPackageAlias); i++ {
-		goContainerPackageAlias = fmt.Sprintf("container%d", i)
+	cg.GoContainerPackageAlias = "container"
+	for i := 0; contains(cg.importedPackageNames, cg.GoContainerPackageAlias); i++ {
+		cg.GoContainerPackageAlias = fmt.Sprintf("container%d", i)
 	}
-	cg.RegisterPackage("github.com/lucassabreu/go-container", &goContainerPackageAlias)
+	cg.RegisterPackage("github.com/lucassabreu/go-container", &cg.GoContainerPackageAlias)
 
 	if len(cg.ContainerPackage) == 0 {
 		cg.ContainerPackage = (DefaultContainerPackage)
@@ -79,16 +79,7 @@ func (cg *ContainerGenerator) Compile() error {
 	}
 
 	b := &bytes.Buffer{}
-	err := tpl.Execute(b, map[string]interface{}{
-		"Generator":               cg,
-		"ContainerPackage":        cg.ContainerPackage,
-		"ContainerDocs":           cg.ContainerDocs,
-		"ContainerName":           cg.ContainerName,
-		"GoContainerPackageAlias": goContainerPackageAlias,
-		"Packages":                cg.packages,
-		"Services":                cg.services,
-		"ServiceNames":            cg.SortedServiceNames(),
-	})
+	err := tpl.Execute(b, cg)
 
 	if err != nil {
 		return err
