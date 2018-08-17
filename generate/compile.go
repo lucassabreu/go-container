@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"go/format"
 	"strings"
 	"text/template"
 )
@@ -25,18 +26,19 @@ package {{.ContainerPackage}}
 
 import (
 	{{ range .Packages -}}
-	{{ .UniqueName }} {{ .Path }}
+		{{ .UniqueName }} "{{ .Path }}"
 	{{ end -}}
 )
 
 // {{.ContainerDocs}}
 type {{.ContainerName}} struct {
 	parametersBag {{.GoContainerPackageAlias}}.ParametersBag
-{{ range $name := .ServiceNames -}}
-	{{ $service := index $.Services $name }}
-	{{ toVarName $name }} {{ $service.Package.UniqueName }}.{{ $service.ResultType }}
-{{- end }}
+	{{ range $name := .ServiceNames -}}
+		{{ $service := index $.Services $name }}
+		{{ toVarName $name }} {{ $service.ResultType.String }}
+	{{- end }}
 }
+
 `)
 	if err != nil {
 		panic(err)
@@ -78,6 +80,7 @@ func (cg *ContainerGenerator) Compile() error {
 
 	b := &bytes.Buffer{}
 	err := tpl.Execute(b, map[string]interface{}{
+		"Generator":               cg,
 		"ContainerPackage":        cg.ContainerPackage,
 		"ContainerDocs":           cg.ContainerDocs,
 		"ContainerName":           cg.ContainerName,
@@ -91,7 +94,12 @@ func (cg *ContainerGenerator) Compile() error {
 		return err
 	}
 
-	cg.buffer = b
+	src, err := format.Source(b.Bytes())
+	if err != nil {
+		return fmt.Errorf("Err: %s, Source: %s", err.Error(), b.String())
+	}
+
+	cg.buffer = bytes.NewBuffer(src)
 	return nil
 }
 

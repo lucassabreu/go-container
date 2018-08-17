@@ -30,8 +30,33 @@ type ContainerGenerator struct {
 	packages             []Package
 
 	services map[string]Service
+	types    map[types.Type]Type
 
 	buffer *bytes.Buffer
+}
+
+// Type represents a type with its Package (if it have one)
+type Type struct {
+	typ types.Type
+	pkg *Package
+}
+
+func (t Type) String() string {
+	return t.pkg.UniqueName() + ".Something"
+}
+
+// RegisterType will create a new Type to be used in the generator,
+// if the types.Type was aready registered, than the previews one
+// will be returned
+func (cg ContainerGenerator) RegisterType(t types.Type) Type {
+	if typ, ok := cg.types[t]; ok {
+		return typ
+	}
+
+	return Type{
+		typ: t,
+		pkg: &cg.packages[0],
+	}
 }
 
 // NewContainerGenerator creates a ContainerGenerator for the the def.Container
@@ -68,6 +93,8 @@ func NewContainerGenerator(cDef def.Container) (*ContainerGenerator, error) {
 	return cg, nil
 }
 
+// SortedServiceNames extracts and sorts the service names to make the
+// generation less randomic
 func (cg ContainerGenerator) SortedServiceNames() []string {
 	list := make([]string, len(cg.services))
 
@@ -172,7 +199,7 @@ func (cg *ContainerGenerator) registerServiceByFactory(name, factoryFunc string,
 		basicServiceGen: basicServiceGen{
 			ServicePackage:    pkgGen,
 			ServiceName:       name,
-			ServiceResultType: fnc.Results[0],
+			ServiceResultType: cg.RegisterType(fnc.Results[0]),
 		},
 		arguments: values,
 	}
@@ -216,7 +243,7 @@ func (cg *ContainerGenerator) registerServiceByInitialization(name, structName s
 		basicServiceGen: basicServiceGen{
 			ServicePackage:    pkgGen,
 			ServiceName:       name,
-			ServiceResultType: structType.Type,
+			ServiceResultType: cg.RegisterType(structType.Type),
 		},
 		initStruct: structType,
 		values:     initValues,

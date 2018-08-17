@@ -1,15 +1,13 @@
 package generate
 
 import (
-	"go/types"
-
 	"github.com/lucassabreu/go-container/scan"
 )
 
 // Service creates a new func to generate a service
 type Service interface {
 	Name() string
-	ResultType() types.Type
+	ResultType() Type
 	Package() *Package
 	Generate(ContainerGenerator) string
 }
@@ -17,14 +15,14 @@ type Service interface {
 type basicServiceGen struct {
 	ServicePackage    *Package
 	ServiceName       string
-	ServiceResultType types.Type
+	ServiceResultType Type
 }
 
 func (b basicServiceGen) Name() string {
 	return b.ServiceName
 }
 
-func (b basicServiceGen) ResultType() types.Type {
+func (b basicServiceGen) ResultType() Type {
 	return b.ServiceResultType
 }
 
