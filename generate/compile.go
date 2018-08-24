@@ -35,7 +35,7 @@ type {{.ContainerName}} struct {
 	parametersBag {{.GoContainerPackageAlias}}.ParametersBag
 	{{ range $name := .SortedServiceNames -}}
 		{{ $service := index $.Services $name }}
-		{{ toVarName $name }} {{ $service.ResultType.AsPointer }}
+		{{ toVarName $name }} {{ $service.ResultType.StringAsPointer }}
 	{{- end }}
 }
 

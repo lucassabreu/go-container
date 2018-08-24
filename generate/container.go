@@ -54,6 +54,7 @@ func NewContainerGenerator(cDef def.Container) (*ContainerGenerator, error) {
 	}
 
 	cg.services = make(map[string]Service, len(cDef.Services))
+	cg.types = make(map[types.Type]Type)
 	for name, serv := range cDef.Services {
 		if serv.IsByFactory() {
 			if err := cg.registerServiceByFactory(name, *serv.Factory, serv.Arguments); err != nil {
