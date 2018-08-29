@@ -4,7 +4,24 @@ import (
 	"fmt"
 	"go/types"
 	"strconv"
+
+	"github.com/lucassabreu/go-container/def"
 )
+
+func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, err error) {
+	switch arg.ValueType() {
+	case def.ValueSingle:
+
+		v = &ConstantValue{
+			value: arg.GetSingleValue(),
+			typ:   t,
+		}
+		return
+	default:
+		return nil, fmt.Errorf("Value type %s was not recognized", arg.ValueType().String())
+	}
+
+}
 
 // Value will generate a value definition or use
 type Value interface {

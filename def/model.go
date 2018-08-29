@@ -77,6 +77,21 @@ const (
 	ValueService
 )
 
+func (v ValueType) String() string {
+	switch v {
+	case ValueSingle:
+		return "ValueSingle"
+	case ValueStruct:
+		return "ValueStruct"
+	case ValueSlice:
+		return "ValueSlice"
+	case ValueService:
+		return "ValueService"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 // Value represents a generic value (may be a reference to a service, a static value or static struct)
 type Value struct {
 	value     interface{}

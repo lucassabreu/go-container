@@ -247,14 +247,3 @@ func (cg *ContainerGenerator) registerServiceByInitialization(name, structName s
 
 	return nil
 }
-
-func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, err error) {
-	if arg.ValueType() == def.ValueSingle {
-		v = &ConstantValue{
-			value: arg.GetSingleValue(),
-			typ:   t,
-		}
-		return
-	}
-	return nil, nil
-}
