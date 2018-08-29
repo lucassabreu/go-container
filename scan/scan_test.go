@@ -58,7 +58,7 @@ func TestImportPackage(t *testing.T) {
 		t,
 		`Package: test (github.com/lucassabreu/go-container/examples/test)
 	Funcs:
-		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.Doer)
+		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (*github.com/lucassabreu/go-container/examples/test.Doer)
 		NewIDo() (github.com/lucassabreu/go-container/examples/test.Doer)
 		NewJustDo(string) (github.com/lucassabreu/go-container/examples/test.JustDo)
 		NewSomethingDo(github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.SomethingDo)

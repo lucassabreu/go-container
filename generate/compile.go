@@ -11,13 +11,16 @@ import (
 
 var tpl *template.Template
 
+// ToVarName converts service name into the container's property name
+func ToVarName(name string) string {
+	return strings.ToLower(name[0:1]) + name[1:]
+}
+
 func init() {
 	tpl = template.New("container")
 
 	tpl.Funcs(template.FuncMap{
-		"toVarName": func(name string) string {
-			return strings.ToLower(name[0:1]) + name[1:]
-		},
+		"toVarName": ToVarName,
 	})
 
 	var err error
@@ -39,6 +42,19 @@ type {{.ContainerName}} struct {
 	{{- end }}
 }
 
+func (c *{{.ContainerName}}) GetParameterBag() {{.GoContainerPackageAlias}}.ParametersBag {
+	return c.parameterBag
+}
+
+func (c *{{.ContainerName}}) SetParameterBag(bag {{.GoContainerPackageAlias}}.ParametersBag) *{{.ContainerName}} {
+	c.parameterBag = bag
+	return c
+}
+
+{{ range $name := .SortedServiceNames -}}
+	{{ $service := index $.Services $name }}
+	{{ $service.String }}
+{{ end }}
 `)
 	if err != nil {
 		panic(err)
@@ -76,6 +92,10 @@ func (cg *ContainerGenerator) Compile() error {
 
 	if len(cg.ContainerDocs) == 0 {
 		cg.ContainerDocs = fmt.Sprintf(DefaultContainerDocs, cg.ContainerName)
+	}
+
+	for _, service := range cg.Services() {
+		service.Build(cg)
 	}
 
 	b := &bytes.Buffer{}

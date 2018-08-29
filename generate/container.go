@@ -193,17 +193,16 @@ func (cg *ContainerGenerator) registerServiceByFactory(name, factoryFunc string,
 		values[i] = v
 	}
 
-	cg.services[name] = serviceByFactoryGen{
-		basicServiceGen: basicServiceGen{
-			ServicePackage:    pkgGen,
-			ServiceName:       name,
-			ServiceResultType: cg.RegisterType(fnc.Results[0]),
-		},
-		arguments: values,
-	}
+	cg.services[name] = NewServiceByFactory(
+		name,
+		pkgGen,
+		fnc,
+		values,
+		cg.RegisterType(fnc.Results[0]),
+	)
 
 	if len(fnc.Results) == 2 {
-		cg.services[name] = serviceByFailableFactoryGen{cg.services[name].(serviceByFactoryGen)}
+		cg.services[name] = serviceByFailableFactoryGen{cg.services[name].(*ServiceByFactory)}
 	}
 
 	return nil
@@ -239,7 +238,6 @@ func (cg *ContainerGenerator) registerServiceByInitialization(name, structName s
 
 	cg.services[name] = serviceByInitializationGen{
 		basicServiceGen: basicServiceGen{
-			ServicePackage:    pkgGen,
 			ServiceName:       name,
 			ServiceResultType: cg.RegisterType(structType.Type),
 		},
@@ -252,7 +250,7 @@ func (cg *ContainerGenerator) registerServiceByInitialization(name, structName s
 
 func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, err error) {
 	if arg.ValueType() == def.ValueSingle {
-		v = constValue{
+		v = &ConstantValue{
 			value: arg.GetSingleValue(),
 			typ:   t,
 		}

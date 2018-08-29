@@ -1,40 +1,57 @@
 package generate
 
 import (
+	"fmt"
 	"go/types"
 	"strconv"
 )
 
 // Value will generate a value definition or use
 type Value interface {
-	Generate(ContainerGenerator) string
-	NeedsPointer() bool
+	Build(*ContainerGenerator)
+	NeedsVariable() bool
+	GenerateVariable(varName string) string
+	GenerateUse() string
 }
 
-type constValue struct {
-	value string
-	typ   types.Type
+type ConstantValue struct {
+	value         string
+	typ           types.Type
+	needsVariable bool
+	varName       string
 }
 
-func (c constValue) Generate(ContainerGenerator) string {
-	var typ types.Type
-	typ, ok := c.typ.(*types.Pointer)
-	if !ok {
-		typ = c.typ
+func (v *ConstantValue) Build(c *ContainerGenerator) {
+	_, ok := v.typ.(*types.Pointer)
+	v.needsVariable = ok
+}
+
+func (v *ConstantValue) NeedsVariable() bool {
+	return v.needsVariable
+}
+
+func constantValueToString(v string, kind types.BasicKind) string {
+	if kind == types.String {
+		return strconv.Quote(v)
+
+	}
+	return v
+}
+func (v *ConstantValue) GenerateVariable(varName string) string {
+	if !v.NeedsVariable() {
+		return ""
 	}
 
-	b := typ.(*types.Basic)
-	if b.Kind() == types.String {
-		return strconv.Quote(c.value)
-
-	}
-
-	return c.value
+	typ := v.typ.(*types.Pointer).Elem().(*types.Basic)
+	v.varName = varName
+	return fmt.Sprintf("%s := %s", varName, constantValueToString(v.value, typ.Kind()))
 }
-
-func (c constValue) NeedsPointer() bool {
-	_, ok := c.typ.(*types.Pointer)
-	return ok
+func (v *ConstantValue) GenerateUse() string {
+	if !v.NeedsVariable() {
+		typ := v.typ.(*types.Basic)
+		return constantValueToString(v.value, typ.Kind())
+	}
+	return fmt.Sprintf("&%s", v.varName)
 }
 
 type slideValue struct {
