@@ -37,6 +37,21 @@ type Struct struct {
 	Type   types.Type
 }
 
+// SortedFields get fields sorted by name
+func (s Struct) SortedFields() []string {
+	names := make([]string, len(s.Fields))
+
+	i := 0
+	for name := range s.Fields {
+		names[i] = name
+		i = i + 1
+	}
+
+	sort.Strings(names)
+	return names
+
+}
+
 // GetFuncsNames returns name of the funcs of the package
 func (p Package) GetFuncsNames() []string {
 	names := make([]string, len(p.Funcs))
@@ -195,7 +210,8 @@ func (p Package) String() string {
 		b.WriteString("\t\t")
 		b.WriteString(f.Name)
 		b.WriteString("{\n")
-		for name, t := range f.Fields {
+		for _, name := range f.SortedFields() {
+			t := f.Fields[name]
 			b.WriteString("\t\t\t")
 			b.WriteString(name)
 			b.WriteRune(' ')

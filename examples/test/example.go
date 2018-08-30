@@ -7,6 +7,27 @@ type Doer interface {
 	Do()
 }
 
+// Config needed for DoByConfig
+type Config struct {
+	What string
+	When string
+}
+
+// DoByConfig uses a config
+type DoByConfig struct {
+	config Config
+}
+
+// NewDoByConfig creates a DoByConfig
+func NewDoByConfig(c Config) DoByConfig {
+	return DoByConfig{config: c}
+}
+
+// Do things
+func (d DoByConfig) Do() {
+	fmt.Printf("%s at %s", d.config.What, d.config.When)
+}
+
 type iDo struct{}
 
 func (id iDo) Do() {
