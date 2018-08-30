@@ -43,6 +43,13 @@ func TestCompile(t *testing.T) {
 					"third":  def.NewSingleValue("smile"),
 				}),
 			),
+			"DoByConfig": def.NewFactoryService(
+				"test.NewDoByConfig",
+				def.NewStructValue(map[string]def.Value{
+					"What": def.NewSingleValue("wake up"),
+					"When": def.NewSingleValue("at morning"),
+				}),
+			),
 		},
 	}
 

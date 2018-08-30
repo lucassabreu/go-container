@@ -30,6 +30,14 @@ func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, 
 		}
 		return
 	case def.ValueStruct:
+		if isMapType(t) {
+
+			v = &MapValue{
+				Value: arg,
+				Type:  t,
+			}
+			return
+		}
 		v = &StructValue{
 			Value: arg,
 			Type:  t,
@@ -38,6 +46,15 @@ func (cg ContainerGenerator) createValue(t types.Type, arg def.Value) (v Value, 
 	default:
 		return nil, fmt.Errorf("Value type %s was not recognized", arg.ValueType().String())
 	}
+}
+
+func isMapType(t types.Type) bool {
+	if t, ok := t.(*types.Pointer); ok {
+		return isMapType(t.Elem())
+	}
+
+	_, ok := t.(*types.Map)
+	return ok
 }
 
 // Value will generate a value definition or use
@@ -192,6 +209,7 @@ func (v *StructValue) Build(c *ContainerGenerator) {
 }
 
 func (v *StructValue) NeedsVariable() bool {
+	t,ok:=
 	return false
 }
 
@@ -200,5 +218,25 @@ func (v *StructValue) GenerateVariable(varName string) string {
 }
 
 func (v *StructValue) GenerateUse() string {
+	return fmt.Sprintf("%#v", v.Value)
+}
+
+type MapValue struct {
+	Value def.Value
+	Type  types.Type
+}
+
+func (v *MapValue) Build(c *ContainerGenerator) {
+}
+
+func (v *MapValue) NeedsVariable() bool {
+	return false
+}
+
+func (v *MapValue) GenerateVariable(varName string) string {
+	return ""
+}
+
+func (v *MapValue) GenerateUse() string {
 	return fmt.Sprintf("%#v", v.Value)
 }
