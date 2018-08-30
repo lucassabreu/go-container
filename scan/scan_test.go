@@ -18,7 +18,7 @@ func TestImportPackage(t *testing.T) {
 	require.Equal(t, pkg.Name, "test")
 	require.Equal(t, pkg.ImportPath, pkgName)
 
-	require.Equal(t, 7, len(pkg.Funcs))
+	require.Equal(t, 8, len(pkg.Funcs))
 
 	if _, ok := pkg.Funcs["NewIDo"]; !ok {
 		t.Fatalf("Should have found 'NewIDo' exported func")
@@ -59,6 +59,7 @@ func TestImportPackage(t *testing.T) {
 		`Package: test (github.com/lucassabreu/go-container/examples/test)
 	Funcs:
 		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (*github.com/lucassabreu/go-container/examples/test.Doer)
+		NewDoALotByPointer(*[]github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.Doer)
 		NewDoByConfig(github.com/lucassabreu/go-container/examples/test.Config) (github.com/lucassabreu/go-container/examples/test.DoByConfig)
 		NewIDo() (github.com/lucassabreu/go-container/examples/test.Doer)
 		NewJustDo(string) (github.com/lucassabreu/go-container/examples/test.JustDo)

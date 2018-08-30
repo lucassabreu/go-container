@@ -99,6 +99,12 @@ func NewDoALot(doers []Doer) *Doer {
 	return &doer
 }
 
+// NewDoALotByPointer receives a pointer slice
+func NewDoALotByPointer(doers *[]Doer) Doer {
+	doer := NewDoALot(*doers)
+	return *doer
+}
+
 func (a doALot) Do() {
 	for _, doer := range a.things {
 		doer.Do()
