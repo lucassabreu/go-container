@@ -203,13 +203,36 @@ func (v *SliceValue) GenerateUse() string {
 type StructValue struct {
 	Value def.Value
 	Type  types.Type
+
+	structType    NamedType
+	values        map[string]Value
+	needsVariable bool
+	varName       string
+	pointer       bool
 }
 
 func (v *StructValue) Build(c *ContainerGenerator) {
+	_, ok := v.Type.(*types.Pointer)
+	v.pointer = ok
+	v.needsVariable = false
+	var t *types.Named
+	if v.pointer {
+		t = v.Type.(*types.Pointer).Elem().(*types.Named)
+	} else {
+		t = v.Type.(*types.Named)
+	}
+
+	s := t.Underlying().(*types.Struct)
+
+	v.structType = c.RegisterType(v.Type).(NamedType)
+	structValues := v.Value.GetStruct()
+	v.values = make(map[string]Value, len(structValues))
+	for n, v := range structValues {
+		b.values[n] = c.createValue(v)
+	}
 }
 
 func (v *StructValue) NeedsVariable() bool {
-	t,ok:=
 	return false
 }
 
