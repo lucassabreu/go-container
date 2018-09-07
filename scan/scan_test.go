@@ -5,19 +5,20 @@ import (
 	"testing"
 
 	"github.com/lucassabreu/go-container/scan"
+	"github.com/stretchr/testify/require"
 )
 
 func TestImportPackage(t *testing.T) {
-	pkgName := "github.com/lucassabreu/go-container/scan/test"
+	pkgName := "github.com/lucassabreu/go-container/examples/test"
 	pkg, err := scan.ImportPackage(pkgName)
 	if err != nil {
 		t.Errorf("Should not fail, error received: %v", err)
 	}
 
-	assertEqual(t, pkg.Name, "example")
-	assertEqual(t, pkg.ImportPath, pkgName)
+	require.Equal(t, pkg.Name, "test")
+	require.Equal(t, pkg.ImportPath, pkgName)
 
-	assertEqual(t, 2, len(pkg.Funcs))
+	require.Equal(t, 8, len(pkg.Funcs))
 
 	if _, ok := pkg.Funcs["NewIDo"]; !ok {
 		t.Fatalf("Should have found 'NewIDo' exported func")
@@ -27,42 +28,62 @@ func TestImportPackage(t *testing.T) {
 		t.Fatalf("Should have found 'NewTheyDo' exported func")
 	}
 
-	assertEqual(t, 1, len(pkg.Structs))
+	require.Equal(t, 6, len(pkg.Structs))
 
 	if _, ok := pkg.Structs["TheyDo"]; !ok {
 		t.Fatalf("Should have found 'TheyDo' exported struct")
 	}
 
 	f := pkg.Funcs["NewTheyDo"]
-	assertEqual(t, "NewTheyDo", f.Name)
+	require.Equal(t, "NewTheyDo", f.Name)
 
-	assertEqual(t, 1, len(f.Params))
+	require.Equal(t, 1, len(f.Params))
 	typ := f.Params[0]
-	assertEqual(t, "func(string)", typ.String())
+	require.Equal(t, "func(string)", typ.String())
 
-	assertEqual(t, 1, len(f.Results))
+	require.Equal(t, 1, len(f.Results))
 	typ = f.Results[0]
-	assertEqual(t, pkgName+".TheyDo", typ.String())
+	require.Equal(t, pkgName+".TheyDo", typ.String())
 
 	f = pkg.Funcs["NewIDo"]
-	assertEqual(t, "NewIDo", f.Name)
+	require.Equal(t, "NewIDo", f.Name)
 
-	assertEqual(t, 0, len(f.Params))
+	require.Equal(t, 0, len(f.Params))
 
-	assertEqual(t, 1, len(f.Results))
+	require.Equal(t, 1, len(f.Results))
 	typ = f.Results[0]
-	assertEqual(t, pkgName+".Doer", typ.String())
+	require.Equal(t, pkgName+".Doer", typ.String())
 
-	assertEqual(
+	require.Equal(
 		t,
-		`Package: example (github.com/lucassabreu/go-container/scan/test)
+		`Package: test (github.com/lucassabreu/go-container/examples/test)
 	Funcs:
-		NewIDo() (github.com/lucassabreu/go-container/scan/test.Doer)
-		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/scan/test.TheyDo)
+		NewDoALot([]github.com/lucassabreu/go-container/examples/test.Doer) (*github.com/lucassabreu/go-container/examples/test.Doer)
+		NewDoALotByPointer(*[]github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.Doer)
+		NewDoByConfig(github.com/lucassabreu/go-container/examples/test.Config) (github.com/lucassabreu/go-container/examples/test.DoByConfig)
+		NewIDo() (github.com/lucassabreu/go-container/examples/test.Doer)
+		NewJustDo(string) (github.com/lucassabreu/go-container/examples/test.JustDo)
+		NewSomethingDo(github.com/lucassabreu/go-container/examples/test.Doer) (github.com/lucassabreu/go-container/examples/test.SomethingDo)
+		NewTheyDo(func(string)) (github.com/lucassabreu/go-container/examples/test.TheyDo)
+		NewToDo(map[string]github.com/lucassabreu/go-container/examples/test.Doer) (*github.com/lucassabreu/go-container/examples/test.ToDo)
 
 	Structs:
+		Config{
+			What string,
+			When string,
+		}
+		DoByConfig{
+		}
+		JustDo{
+			That string,
+		}
+		SomethingDo{
+			Something github.com/lucassabreu/go-container/examples/test.Doer,
+		}
 		TheyDo{
 			ToDo func(string),
+		}
+		ToDo{
 		}
 `,
 		pkg.String(),
@@ -70,7 +91,7 @@ func TestImportPackage(t *testing.T) {
 }
 
 func TestImportPackageShouldFailWhenPackageNotExists(t *testing.T) {
-	pkgName := "github.com/lucassabreu/go-container/scan/test1"
+	pkgName := "github.com/lucassabreu/go-container/examples/test1"
 	_, err := scan.ImportPackage(pkgName)
 	if err == nil {
 		t.Errorf("Should fail, no error received")
@@ -78,11 +99,5 @@ func TestImportPackageShouldFailWhenPackageNotExists(t *testing.T) {
 
 	if !strings.HasPrefix(err.Error(), "cannot find package") {
 		t.Errorf("Should've not found the package, got: %v", err)
-	}
-}
-
-func assertEqual(t *testing.T, expected interface{}, value interface{}) {
-	if expected != value {
-		t.Fatalf("expected %v, got %v", expected, value)
 	}
 }

@@ -1,0 +1,56 @@
+container:
+  name: "ReportContainer"
+  docs: "ReportContainer is a container for the application"
+
+  packages:
+    - "github.com/lucassabreu/go-container/examples/basicapp"
+    - "net/http": "magic"
+
+  services:
+    ComposedReport:
+      factory: basicapp.NewComposedReport
+      arguments:
+        - "@SimpleReportA"
+        - "@SimpleReportB"
+        - "@SimplerReport"
+
+    SimpleReportA:
+      factory: basicapp.NewSimpleReporter
+      arguments: [ "A" ]
+
+    SimpleReportB:
+      factory: basicapp.NewSimpleReporter
+      arguments: [ "B" ]
+
+    ReportThatFails:
+      factory: basicapp.NewReportThatFails
+
+    ReportThatNotFails:
+      factory: basicapp.NewReportThatNotFails
+
+    SimplerReport:
+      struct: basicapp.SimplerReport
+      fields:
+        ReportName: "something simple"
+
+    ComposedSimplerReport:
+      struct: basicapp.ComposedSimplerReport
+      fields:
+        SimplerReport:
+          ReportName: "something simple"
+        Extra: "spice"
+
+    ComposedSimplerReportWithSimplerReport:
+      struct: basicapp.ComposedSimplerReport
+      fields:
+        SimplerReport: "@SimplerReport"
+        Extra: "spice"
+
+    ProxyReporter:
+      docs: "makes things complicated"
+      struct: basicapp.ProxyReporter
+      fields:
+        CSR: "@ComposedSimplerReportWithSimplerReport"
+
+  alias:
+    DefaultReport: "@SimplerReport"

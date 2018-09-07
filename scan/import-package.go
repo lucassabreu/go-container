@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -10,7 +11,7 @@ import (
 	"go/types"
 	"os"
 	"path/filepath"
-	"strings"
+	"sort"
 )
 
 // Package represents a Go package definition
@@ -23,15 +24,58 @@ type Package struct {
 
 // Func represents a Go func definition
 type Func struct {
-	Name    string
-	Params  []types.Type
-	Results []types.Type
+	Name     string
+	Params   []types.Type
+	Results  []types.Type
+	Variadic bool
 }
 
 // Struct represents a Go struct definition
 type Struct struct {
 	Name   string
 	Fields map[string]types.Type
+	Type   types.Type
+}
+
+// SortedFields get fields sorted by name
+func (s Struct) SortedFields() []string {
+	names := make([]string, len(s.Fields))
+
+	i := 0
+	for name := range s.Fields {
+		names[i] = name
+		i = i + 1
+	}
+
+	sort.Strings(names)
+	return names
+
+}
+
+// GetFuncsNames returns name of the funcs of the package
+func (p Package) GetFuncsNames() []string {
+	names := make([]string, len(p.Funcs))
+
+	i := 0
+	for name := range p.Funcs {
+		names[i] = name
+		i = i + 1
+	}
+
+	return names
+}
+
+// GetStructsNames returns name of the structs of the package
+func (p Package) GetStructsNames() []string {
+	names := make([]string, len(p.Structs))
+
+	i := 0
+	for name := range p.Structs {
+		names[i] = name
+		i = i + 1
+	}
+
+	return names
 }
 
 // ImportPackage will find and read the definitions on a package and return it
@@ -82,9 +126,10 @@ func ImportPackage(pkgName string) (Package, error) {
 				}
 
 				pkgDef.Funcs[obj.Name()] = Func{
-					Name:    obj.Name(),
-					Params:  tupleToTypes(sig.Params()),
-					Results: tupleToTypes(sig.Results()),
+					Name:     obj.Name(),
+					Params:   tupleToTypes(sig.Params()),
+					Results:  tupleToTypes(sig.Results()),
+					Variadic: sig.Variadic(),
 				}
 			case *types.TypeName:
 				typ, ok := obj.Type().Underlying().(*types.Struct)
@@ -95,6 +140,7 @@ func ImportPackage(pkgName string) (Package, error) {
 				structDef := Struct{
 					Name:   obj.Name(),
 					Fields: make(map[string]types.Type),
+					Type:   obj.Type(),
 				}
 
 				for i := 0; i < typ.NumFields(); i++ {
@@ -123,14 +169,19 @@ func tupleToTypes(t *types.Tuple) []types.Type {
 }
 
 func (p Package) String() string {
-	b := strings.Builder{}
+	b := bytes.Buffer{}
 
 	b.WriteString("Package: ")
 	b.WriteString(p.Name)
 	b.WriteString(" (")
 	b.WriteString(p.ImportPath)
 	b.WriteString(")\n\tFuncs:\n")
-	for _, f := range p.Funcs {
+
+	names := p.GetFuncsNames()
+	sort.Strings(names)
+
+	for _, name := range names {
+		f := p.Funcs[name]
 		b.WriteString("\t\t")
 		b.WriteString(f.Name)
 		b.WriteRune('(')
@@ -151,11 +202,16 @@ func (p Package) String() string {
 	}
 
 	b.WriteString("\n\tStructs:\n")
-	for _, f := range p.Structs {
+
+	names = p.GetStructsNames()
+	sort.Strings(names)
+	for _, name := range names {
+		f := p.Structs[name]
 		b.WriteString("\t\t")
 		b.WriteString(f.Name)
 		b.WriteString("{\n")
-		for name, t := range f.Fields {
+		for _, name := range f.SortedFields() {
+			t := f.Fields[name]
 			b.WriteString("\t\t\t")
 			b.WriteString(name)
 			b.WriteRune(' ')
