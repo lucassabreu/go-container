@@ -205,6 +205,7 @@ type StructValue struct {
 	Type  types.Type
 
 	structType    NamedType
+	fieldsTypes map[string]
 	values        map[string]Value
 	needsVariable bool
 	varName       string
@@ -224,11 +225,16 @@ func (v *StructValue) Build(c *ContainerGenerator) {
 
 	s := t.Underlying().(*types.Struct)
 
+
+
 	v.structType = c.RegisterType(v.Type).(NamedType)
 	structValues := v.Value.GetStruct()
 	v.values = make(map[string]Value, len(structValues))
-	for n, v := range structValues {
-		b.values[n] = c.createValue(v)
+	for n, sv := range structValues {
+		v.values[n], _ = c.createValue(
+			sv,
+			v.structType.GetStruct(),
+		)
 	}
 }
 

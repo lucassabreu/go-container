@@ -72,6 +72,11 @@ func (t NamedType) Type() types.Type {
 	return t.InnerType
 }
 
+// GetStruct get the underlying struct, if it exists
+func (t NamedType) GetStruct() *types.Struct {
+	return t.Type().(*types.Struct)
+}
+
 // InterfaceType represents a interface type
 type InterfaceType struct {
 	InnerType *types.Interface
